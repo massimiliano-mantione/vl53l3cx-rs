@@ -1,18 +1,20 @@
 mod test_structs_layout;
 
+use embedded_hal::blocking::i2c::{Read, Write, WriteRead};
+
 const VL53LX_SOFT_RESET: u32 = 0;
 const VL53LX_I2C_SLAVE__DEVICE_ADDRESS: u32 = 1;
-const VL53LX_ANA_CONFIG__VHV_REF_SEL_VDDPIX: u32 = 2;
-const VL53LX_ANA_CONFIG__VHV_REF_SEL_VQUENCH: u32 = 3;
-const VL53LX_ANA_CONFIG__REG_AVDD1V2_SEL: u32 = 4;
-const VL53LX_ANA_CONFIG__FAST_OSC__TRIM: u32 = 5;
-const VL53LX_OSC_MEASURED__FAST_OSC__FREQUENCY: u32 = 6;
-const VL53LX_OSC_MEASURED__FAST_OSC__FREQUENCY_HI: u32 = 6;
-const VL53LX_OSC_MEASURED__FAST_OSC__FREQUENCY_LO: u32 = 7;
-const VL53LX_VHV_CONFIG__TIMEOUT_MACROP_LOOP_BOUND: u32 = 8;
-const VL53LX_VHV_CONFIG__COUNT_THRESH: u32 = 9;
-const VL53LX_VHV_CONFIG__OFFSET: u32 = 10;
-const VL53LX_VHV_CONFIG__INIT: u32 = 11;
+const VL53LX_ana_config_vhv_ref_sel_vddpix: u32 = 2;
+const VL53LX_ana_config_vhv_ref_sel_vquench: u32 = 3;
+const VL53LX_ana_config_reg_avdd1v2_sel: u32 = 4;
+const VL53LX_ana_config_fast_osc_trim: u32 = 5;
+const VL53LX_osc_measured_fast_osc_frequency: u32 = 6;
+const VL53LX_osc_measured_fast_osc_frequency_HI: u32 = 6;
+const VL53LX_osc_measured_fast_osc_frequency_LO: u32 = 7;
+const VL53LX_vhv_config_timeout_macrop_loop_bound: u32 = 8;
+const VL53LX_vhv_config_count_thresh: u32 = 9;
+const VL53LX_vhv_config_offset: u32 = 10;
+const VL53LX_vhv_config_init: u32 = 11;
 const VL53LX_GLOBAL_CONFIG__SPAD_ENABLES_REF_0: u32 = 13;
 const VL53LX_GLOBAL_CONFIG__SPAD_ENABLES_REF_1: u32 = 14;
 const VL53LX_GLOBAL_CONFIG__SPAD_ENABLES_REF_2: u32 = 15;
@@ -323,7 +325,7 @@ const VL53LX_IDENTIFICATION__REVISION_ID: u32 = 273;
 const VL53LX_IDENTIFICATION__MODULE_ID: u32 = 274;
 const VL53LX_IDENTIFICATION__MODULE_ID_HI: u32 = 274;
 const VL53LX_IDENTIFICATION__MODULE_ID_LO: u32 = 275;
-const VL53LX_ANA_CONFIG__FAST_OSC__TRIM_MAX: u32 = 276;
+const VL53LX_ana_config_fast_osc_trim_MAX: u32 = 276;
 const VL53LX_ANA_CONFIG__FAST_OSC__FREQ_SET: u32 = 277;
 const VL53LX_ANA_CONFIG__VCSEL_TRIM: u32 = 278;
 const VL53LX_ANA_CONFIG__VCSEL_SELION: u32 = 279;
@@ -1273,10 +1275,10 @@ const VL53LX_NVM__VHV_CONFIG_UNLOCK: u32 = 40;
 const VL53LX_NVM__REF_SELVDDPIX: u32 = 41;
 const VL53LX_NVM__REF_SELVQUENCH: u32 = 42;
 const VL53LX_NVM__REGAVDD1V2_SEL_REGDVDD1V2_SEL: u32 = 43;
-const VL53LX_NVM__VHV_CONFIG__TIMEOUT_MACROP_LOOP_BOUND: u32 = 44;
-const VL53LX_NVM__VHV_CONFIG__COUNT_THRESH: u32 = 45;
-const VL53LX_NVM__VHV_CONFIG__OFFSET: u32 = 46;
-const VL53LX_NVM__VHV_CONFIG__INIT: u32 = 47;
+const VL53LX_NVM__vhv_config_timeout_macrop_loop_bound: u32 = 44;
+const VL53LX_NVM__vhv_config_count_thresh: u32 = 45;
+const VL53LX_NVM__vhv_config_offset: u32 = 46;
+const VL53LX_NVM__vhv_config_init: u32 = 47;
 const VL53LX_NVM__LASER_SAFETY__VCSEL_TRIM_LL: u32 = 48;
 const VL53LX_NVM__LASER_SAFETY__VCSEL_SELION_LL: u32 = 49;
 const VL53LX_NVM__LASER_SAFETY__VCSEL_SELION_MAX_LL: u32 = 50;
@@ -1614,9 +1616,9 @@ const VL53LX_NVM_MAX_FMT_RANGE_DATA: u32 = 4;
 const VL53LX_NVM_PEAK_RATE_MAP_SAMPLES: u32 = 25;
 const VL53LX_NVM_PEAK_RATE_MAP_WIDTH: u32 = 5;
 const VL53LX_NVM_PEAK_RATE_MAP_HEIGHT: u32 = 5;
-const VL53LX_IMPLEMENTATION_VER_MAJOR: u32 = 1;
-const VL53LX_IMPLEMENTATION_VER_MINOR: u32 = 1;
-const VL53LX_IMPLEMENTATION_VER_SUB: u32 = 4;
+const VL53LX_IMPLEMENTATION_VER_MAJOR: u8 = 1;
+const VL53LX_IMPLEMENTATION_VER_MINOR: u8 = 1;
+const VL53LX_IMPLEMENTATION_VER_SUB: u8 = 4;
 const VL53LX_IMPLEMENTATION_VER_REVISION: u32 = 2352;
 const VL53LX_ADDITIONAL_CALIBRATION_DATA_STRUCT_VERSION: u32 = 32;
 const VL53LX_CALIBRATION_DATA_STRUCT_VERSION: u32 = 3970629922;
@@ -1726,337 +1728,97 @@ fn bindgen_test_layout_RangeSensor() {
         concat!("Alignment of ", stringify!(RangeSensor))
     );
 }
-const VL53LX_Tuning_t_VL53LX_TUNING_VERSION: VL53LX_Tuning_t = 0;
-const VL53LX_Tuning_t_VL53LX_TUNING_PROXY_MIN: VL53LX_Tuning_t = 1;
-const VL53LX_Tuning_t_VL53LX_TUNING_SINGLE_TARGET_XTALK_TARGET_DISTANCE_MM: VL53LX_Tuning_t = 2;
-const VL53LX_Tuning_t_VL53LX_TUNING_SINGLE_TARGET_XTALK_SAMPLE_NUMBER: VL53LX_Tuning_t = 3;
-const VL53LX_Tuning_t_VL53LX_TUNING_MIN_AMBIENT_DMAX_VALID: VL53LX_Tuning_t = 4;
-const VL53LX_Tuning_t_VL53LX_TUNING_MAX_SIMPLE_OFFSET_CALIBRATION_SAMPLE_NUMBER:
-    VL53LX_Tuning_t = 5;
-const VL53LX_Tuning_t_VL53LX_TUNING_XTALK_FULL_ROI_TARGET_DISTANCE_MM: VL53LX_Tuning_t = 6;
-const VL53LX_Tuning_t_VL53LX_TUNING_SIMPLE_OFFSET_CALIBRATION_REPEAT: VL53LX_Tuning_t = 7;
-const VL53LX_Tuning_t_VL53LX_TUNING_XTALK_FULL_ROI_BIN_SUM_MARGIN: VL53LX_Tuning_t = 8;
-const VL53LX_Tuning_t_VL53LX_TUNING_XTALK_FULL_ROI_DEFAULT_OFFSET: VL53LX_Tuning_t = 9;
-const VL53LX_Tuning_t_VL53LX_TUNING_ZERO_DISTANCE_OFFSET_NON_LINEAR_FACTOR: VL53LX_Tuning_t =
-    10;
-const VL53LX_Tuning_t_VL53LX_TUNING_MAX_TUNABLE_KEY: VL53LX_Tuning_t = 11;
-type VL53LX_Tuning_t = ::std::os::raw::c_uint;
+enum Vl53lxTuning {
+    Version = 0,
+    ProxyMin = 1,
+    SingleTargetXtalkTargetDistanceMm = 2,
+    SingleTargetXtalkSampleNumber = 3,
+    MinAmbientDmaxValid = 4,
+    MaxSimpleOffsetCalibrationSampleNumber = 5,
+    XtalkFullRoiTargetDistanceMm = 6,
+    SimpleOffsetCalibrationRepeat = 7,
+    XtalkFullRoiBinSumMargin = 8,
+    XtalkFullRoiDefaultOffset = 9,
+    ZeroDistanceOffsetNonLinearFactor = 10,
+    MaxTunableKey = 11
+}
+
 type FixPoint1616_t = u32;
-type VL53LX_Error = i8;
-#[doc = " @} VL53LX_define_Error_group"]
+
+
+#[repr(i8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum VL53LX_Error {
+    NONE = 0,
+    CALIBRATION_WARNING = -1,
+    MIN_CLIPPED = -2,
+    UNDEFINED                         = -3,
+    INVALID_PARAMS                    = -4,
+    NOT_SUPPORTED                     = -5,
+    RANGE_ERROR                       = -6,
+    TIME_OUT                          = -7,
+    MODE_NOT_SUPPORTED                = -8,
+    BUFFER_TOO_SMALL                  = -9,
+    COMMS_BUFFER_TOO_SMALL            = -10,
+    GPIO_NOT_EXISTING                 = -11,
+    GPIO_FUNCTIONALITY_NOT_SUPPORTED  = -12,
+    CONTROL_INTERFACE                 = -13,
+    INVALID_COMMAND                   = -14,
+    DIVISION_BY_ZERO                  = -15,
+    REF_SPAD_INIT                     = -16,
+    GPH_SYNC_CHECK_FAIL               = -17,
+    STREAM_COUNT_CHECK_FAIL           = -18,
+    GPH_ID_CHECK_FAIL                 = -19,
+    ZONE_STREAM_COUNT_CHECK_FAIL      = -20,
+    ZONE_GPH_ID_CHECK_FAIL            = -21,
+    XTALK_EXTRACTION_NO_SAMPLE_FAIL   = -22,
+    XTALK_EXTRACTION_SIGMA_LIMIT_FAIL = -23,
+    OFFSET_CAL_NO_SAMPLE_FAIL           = -24,
+    OFFSET_CAL_NO_SPADS_ENABLED_FAIL    = -25,
+    ZONE_CAL_NO_SAMPLE_FAIL             = -26,
+    TUNING_PARM_KEY_MISMATCH             = -27,
+    WARNING_REF_SPAD_CHAR_NOT_ENOUGH_SPADS   = -28,
+    WARNING_REF_SPAD_CHAR_RATE_TOO_HIGH      = -29,
+    WARNING_REF_SPAD_CHAR_RATE_TOO_LOW       = -30,
+    WARNING_OFFSET_CAL_MISSING_SAMPLES       = -31,
+    WARNING_OFFSET_CAL_SIGMA_TOO_HIGH        = -32,
+    WARNING_OFFSET_CAL_RATE_TOO_HIGH         = -33,
+    WARNING_OFFSET_CAL_SPAD_COUNT_TOO_LOW    = -34,
+    WARNING_ZONE_CAL_MISSING_SAMPLES       = -35,
+    WARNING_ZONE_CAL_SIGMA_TOO_HIGH        = -36,
+    WARNING_ZONE_CAL_RATE_TOO_HIGH         = -37,
+    WARNING_XTALK_MISSING_SAMPLES             = -38,
+    WARNING_XTALK_NO_SAMPLES_FOR_GRADIENT     = -39,
+    WARNING_XTALK_SIGMA_LIMIT_FOR_GRADIENT    = -40,
+    NOT_IMPLEMENTED                   = -41,
+    PLATFORM_SPECIFIC_START           = -60,
+    }
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct VL53LX_hist_gen3_dmax_private_data_t {
-    VL53LX_p_037: u32,
-    VL53LX_p_063: u8,
-    VL53LX_p_064: u8,
-    VL53LX_p_065: u16,
-    VL53LX_p_066: u16,
-    VL53LX_p_067: u16,
-    VL53LX_p_038: u16,
-    VL53LX_p_009: u32,
-    VL53LX_p_033: u32,
-    VL53LX_p_034: u16,
-    VL53LX_p_004: u16,
-    VL53LX_p_028: u32,
-    VL53LX_p_035: u32,
-    VL53LX_p_036: i16,
-    VL53LX_p_022: i16,
+pub struct Vl53lxHistGen3DmaxPrivateData {
+    vl53lx_p_037: u32,
+    vl53lx_p_063: u8,
+    vl53lx_p_064: u8,
+    vl53lx_p_065: u16,
+    vl53lx_p_066: u16,
+    vl53lx_p_067: u16,
+    vl53lx_p_038: u16,
+    vl53lx_p_009: u32,
+    vl53lx_p_033: u32,
+    vl53lx_p_034: u16,
+    vl53lx_p_004: u16,
+    vl53lx_p_028: u32,
+    vl53lx_p_035: u32,
+    vl53lx_p_036: i16,
+    vl53lx_p_022: i16,
 }
-#[test]
-fn bindgen_test_layout_VL53LX_hist_gen3_dmax_private_data_t() {
-    assert_eq!(
-        ::std::mem::size_of::<VL53LX_hist_gen3_dmax_private_data_t>(),
-        40usize,
-        concat!(
-            "Size of: ",
-            stringify!(VL53LX_hist_gen3_dmax_private_data_t)
-        )
-    );
-    assert_eq!(
-        ::std::mem::align_of::<VL53LX_hist_gen3_dmax_private_data_t>(),
-        4usize,
-        concat!(
-            "Alignment of ",
-            stringify!(VL53LX_hist_gen3_dmax_private_data_t)
-        )
-    );
-    fn test_field_VL53LX_p_037() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_037) as usize - ptr as usize
-            },
-            0usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_037)
-            )
-        );
-    }
-    test_field_VL53LX_p_037();
-    fn test_field_VL53LX_p_063() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_063) as usize - ptr as usize
-            },
-            4usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_063)
-            )
-        );
-    }
-    test_field_VL53LX_p_063();
-    fn test_field_VL53LX_p_064() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_064) as usize - ptr as usize
-            },
-            5usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_064)
-            )
-        );
-    }
-    test_field_VL53LX_p_064();
-    fn test_field_VL53LX_p_065() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_065) as usize - ptr as usize
-            },
-            6usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_065)
-            )
-        );
-    }
-    test_field_VL53LX_p_065();
-    fn test_field_VL53LX_p_066() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_066) as usize - ptr as usize
-            },
-            8usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_066)
-            )
-        );
-    }
-    test_field_VL53LX_p_066();
-    fn test_field_VL53LX_p_067() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_067) as usize - ptr as usize
-            },
-            10usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_067)
-            )
-        );
-    }
-    test_field_VL53LX_p_067();
-    fn test_field_VL53LX_p_038() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_038) as usize - ptr as usize
-            },
-            12usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_038)
-            )
-        );
-    }
-    test_field_VL53LX_p_038();
-    fn test_field_VL53LX_p_009() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_009) as usize - ptr as usize
-            },
-            16usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_009)
-            )
-        );
-    }
-    test_field_VL53LX_p_009();
-    fn test_field_VL53LX_p_033() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_033) as usize - ptr as usize
-            },
-            20usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_033)
-            )
-        );
-    }
-    test_field_VL53LX_p_033();
-    fn test_field_VL53LX_p_034() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_034) as usize - ptr as usize
-            },
-            24usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_034)
-            )
-        );
-    }
-    test_field_VL53LX_p_034();
-    fn test_field_VL53LX_p_004() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_004) as usize - ptr as usize
-            },
-            26usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_004)
-            )
-        );
-    }
-    test_field_VL53LX_p_004();
-    fn test_field_VL53LX_p_028() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_028) as usize - ptr as usize
-            },
-            28usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_028)
-            )
-        );
-    }
-    test_field_VL53LX_p_028();
-    fn test_field_VL53LX_p_035() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_035) as usize - ptr as usize
-            },
-            32usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_035)
-            )
-        );
-    }
-    test_field_VL53LX_p_035();
-    fn test_field_VL53LX_p_036() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_036) as usize - ptr as usize
-            },
-            36usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_036)
-            )
-        );
-    }
-    test_field_VL53LX_p_036();
-    fn test_field_VL53LX_p_022() {
-        assert_eq!(
-            unsafe {
-                let uninit =
-                    ::std::mem::MaybeUninit::<VL53LX_hist_gen3_dmax_private_data_t>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_022) as usize - ptr as usize
-            },
-            38usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX_hist_gen3_dmax_private_data_t),
-                "::",
-                stringify!(VL53LX_p_022)
-            )
-        );
-    }
-    test_field_VL53LX_p_022();
-}
-type VL53LX_WaitMethod = u8;
-type VL53LX_DeviceState = u8;
-type VL53LX_DeviceZonePreset = u8;
-type VL53LX_DevicePresetModes = u8;
-type VL53LX_DeviceMeasurementModes = u8;
+
+type Vl53lxWaitMethod = u8;
+type Vl53lxDeviceState = u8;
+type Vl53lxDeviceZonePreset = u8;
+type Vl53lxDevicePresetModes = u8;
+type Vl53lxDeviceMeasurementModes = u8;
 type VL53LX_OffsetCalibrationMode = u8;
 type VL53LX_OffsetCorrectionMode = u8;
 type VL53LX_DeviceDmaxMode = u8;
@@ -2077,38 +1839,39 @@ type VL53LX_DeviceSscArray = u8;
 type VL53LX_ZoneConfig_BinConfig_select = u8;
 type VL53LX_GPIO_Interrupt_Mode = u8;
 type VL53LX_TuningParms = u16;
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct VL53LX_static_nvm_managed_t {
-    i2c_slave__device_address: u8,
-    ana_config__vhv_ref_sel_vddpix: u8,
-    ana_config__vhv_ref_sel_vquench: u8,
-    ana_config__reg_avdd1v2_sel: u8,
-    ana_config__fast_osc__trim: u8,
-    osc_measured__fast_osc__frequency: u16,
-    vhv_config__timeout_macrop_loop_bound: u8,
-    vhv_config__count_thresh: u8,
-    vhv_config__offset: u8,
-    vhv_config__init: u8,
+struct Vl53lxStaticNvmManaged {
+    i2c_slave_device_address: u8,
+    ana_config_vhv_ref_sel_vddpix: u8,
+    ana_config_vhv_ref_sel_vquench: u8,
+    ana_config_reg_avdd1v2_sel: u8,
+    ana_config_fast_osc_trim: u8,
+    osc_measured_fast_osc_frequency: u16,
+    vhv_config_timeout_macrop_loop_bound: u8,
+    vhv_config_count_thresh: u8,
+    vhv_config_offset: u8,
+    vhv_config_init: u8,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_static_nvm_managed_t() {
     assert_eq!(
-        ::std::mem::size_of::<VL53LX_static_nvm_managed_t>(),
+        ::std::mem::size_of::<Vl53lxStaticNvmManaged>(),
         12usize,
         concat!("Size of: ", stringify!(VL53LX_static_nvm_managed_t))
     );
     assert_eq!(
-        ::std::mem::align_of::<VL53LX_static_nvm_managed_t>(),
+        ::std::mem::align_of::<Vl53lxStaticNvmManaged>(),
         2usize,
         concat!("Alignment of ", stringify!(VL53LX_static_nvm_managed_t))
     );
     fn test_field_i2c_slave__device_address() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).i2c_slave__device_address) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).i2c_slave_device_address) as usize - ptr as usize
             },
             0usize,
             concat!(
@@ -2120,80 +1883,80 @@ fn bindgen_test_layout_VL53LX_static_nvm_managed_t() {
         );
     }
     test_field_i2c_slave__device_address();
-    fn test_field_ana_config__vhv_ref_sel_vddpix() {
+    fn test_field_ana_config_vhv_ref_sel_vddpix() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).ana_config__vhv_ref_sel_vddpix) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).ana_config_vhv_ref_sel_vddpix) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(ana_config__vhv_ref_sel_vddpix)
+                stringify!(ana_config_vhv_ref_sel_vddpix)
             )
         );
     }
-    test_field_ana_config__vhv_ref_sel_vddpix();
-    fn test_field_ana_config__vhv_ref_sel_vquench() {
+    test_field_ana_config_vhv_ref_sel_vddpix();
+    fn test_field_ana_config_vhv_ref_sel_vquench() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).ana_config__vhv_ref_sel_vquench) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).ana_config_vhv_ref_sel_vquench) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(ana_config__vhv_ref_sel_vquench)
+                stringify!(ana_config_vhv_ref_sel_vquench)
             )
         );
     }
-    test_field_ana_config__vhv_ref_sel_vquench();
-    fn test_field_ana_config__reg_avdd1v2_sel() {
+    test_field_ana_config_vhv_ref_sel_vquench();
+    fn test_field_ana_config_reg_avdd1v2_sel() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).ana_config__reg_avdd1v2_sel) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).ana_config_reg_avdd1v2_sel) as usize - ptr as usize
             },
             3usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(ana_config__reg_avdd1v2_sel)
+                stringify!(ana_config_reg_avdd1v2_sel)
             )
         );
     }
-    test_field_ana_config__reg_avdd1v2_sel();
-    fn test_field_ana_config__fast_osc__trim() {
+    test_field_ana_config_reg_avdd1v2_sel();
+    fn test_field_ana_config_fast_osc_trim() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).ana_config__fast_osc__trim) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).ana_config_fast_osc_trim) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(ana_config__fast_osc__trim)
+                stringify!(ana_config_fast_osc_trim)
             )
         );
     }
-    test_field_ana_config__fast_osc__trim();
-    fn test_field_osc_measured__fast_osc__frequency() {
+    test_field_ana_config_fast_osc_trim();
+    fn test_field_osc_measured_fast_osc_frequency() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).osc_measured__fast_osc__frequency) as usize
+                ::std::ptr::addr_of!((*ptr).osc_measured_fast_osc_frequency) as usize
                     - ptr as usize
             },
             6usize,
@@ -2201,17 +1964,17 @@ fn bindgen_test_layout_VL53LX_static_nvm_managed_t() {
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(osc_measured__fast_osc__frequency)
+                stringify!(osc_measured_fast_osc_frequency)
             )
         );
     }
-    test_field_osc_measured__fast_osc__frequency();
-    fn test_field_vhv_config__timeout_macrop_loop_bound() {
+    test_field_osc_measured_fast_osc_frequency();
+    fn test_field_vhv_config_timeout_macrop_loop_bound() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).vhv_config__timeout_macrop_loop_bound) as usize
+                ::std::ptr::addr_of!((*ptr).vhv_config_timeout_macrop_loop_bound) as usize
                     - ptr as usize
             },
             8usize,
@@ -2219,62 +1982,62 @@ fn bindgen_test_layout_VL53LX_static_nvm_managed_t() {
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(vhv_config__timeout_macrop_loop_bound)
+                stringify!(vhv_config_timeout_macrop_loop_bound)
             )
         );
     }
-    test_field_vhv_config__timeout_macrop_loop_bound();
-    fn test_field_vhv_config__count_thresh() {
+    test_field_vhv_config_timeout_macrop_loop_bound();
+    fn test_field_vhv_config_count_thresh() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).vhv_config__count_thresh) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vhv_config_count_thresh) as usize - ptr as usize
             },
             9usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(vhv_config__count_thresh)
+                stringify!(vhv_config_count_thresh)
             )
         );
     }
-    test_field_vhv_config__count_thresh();
-    fn test_field_vhv_config__offset() {
+    test_field_vhv_config_count_thresh();
+    fn test_field_vhv_config_offset() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).vhv_config__offset) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vhv_config_offset) as usize - ptr as usize
             },
             10usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(vhv_config__offset)
+                stringify!(vhv_config_offset)
             )
         );
     }
-    test_field_vhv_config__offset();
-    fn test_field_vhv_config__init() {
+    test_field_vhv_config_offset();
+    fn test_field_vhv_config_init() {
         assert_eq!(
             unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX_static_nvm_managed_t>::uninit();
+                let uninit = ::std::mem::MaybeUninit::<Vl53lxStaticNvmManaged>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).vhv_config__init) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vhv_config_init) as usize - ptr as usize
             },
             11usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_static_nvm_managed_t),
                 "::",
-                stringify!(vhv_config__init)
+                stringify!(vhv_config_init)
             )
         );
     }
-    test_field_vhv_config__init();
+    test_field_vhv_config_init();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5697,7 +5460,7 @@ struct VL53LX_nvm_copy_data_t {
     identification__module_type: u8,
     identification__revision_id: u8,
     identification__module_id: u16,
-    ana_config__fast_osc__trim_max: u8,
+    ana_config_fast_osc_trim_max: u8,
     ana_config__fast_osc__freq_set: u8,
     ana_config__vcsel_trim: u8,
     ana_config__vcsel_selion: u8,
@@ -5822,23 +5585,23 @@ fn bindgen_test_layout_VL53LX_nvm_copy_data_t() {
         );
     }
     test_field_identification__module_id();
-    fn test_field_ana_config__fast_osc__trim_max() {
+    fn test_field_ana_config_fast_osc_trim_max() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_nvm_copy_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).ana_config__fast_osc__trim_max) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).ana_config_fast_osc_trim_max) as usize - ptr as usize
             },
             6usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_nvm_copy_data_t),
                 "::",
-                stringify!(ana_config__fast_osc__trim_max)
+                stringify!(ana_config_fast_osc_trim_max)
             )
         );
     }
-    test_field_ana_config__fast_osc__trim_max();
+    test_field_ana_config_fast_osc_trim_max();
     fn test_field_ana_config__fast_osc__freq_set() {
         assert_eq!(
             unsafe {
@@ -11045,13 +10808,13 @@ fn bindgen_test_layout_VL53LX_hist_post_process_config_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_histogram_bin_data_t {
-    cfg_device_state: VL53LX_DeviceState,
-    rd_device_state: VL53LX_DeviceState,
+    cfg_device_state: Vl53lxDeviceState,
+    rd_device_state: Vl53lxDeviceState,
     zone_id: u8,
     time_stamp: u32,
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
     number_of_ambient_bins: u8,
     bin_seq: [u8; 6usize],
     bin_rep: [u8; 6usize],
@@ -11065,8 +10828,8 @@ struct VL53LX_histogram_bin_data_t {
     phasecal_result__vcsel_start: u8,
     cal_config__vcsel_start: u8,
     vcsel_width: u16,
-    VL53LX_p_005: u8,
-    VL53LX_p_015: u16,
+    vl53lx_p_005: u8,
+    vl53lx_p_015: u16,
     total_periods_elapsed: u32,
     peak_duration_us: u32,
     woi_duration_us: u32,
@@ -11075,7 +10838,7 @@ struct VL53LX_histogram_bin_data_t {
     zero_distance_phase: u16,
     number_of_ambient_samples: u8,
     ambient_events_sum: i32,
-    VL53LX_p_028: i32,
+    vl53lx_p_028: i32,
     roi_config__user_roi_centre_spad: u8,
     roi_config__user_roi_requested_global_xy_size: u8,
 }
@@ -11159,57 +10922,57 @@ fn bindgen_test_layout_VL53LX_histogram_bin_data_t() {
         );
     }
     test_field_time_stamp();
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             9usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             10usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
+    test_field_vl53lx_p_021();
     fn test_field_number_of_ambient_bins() {
         assert_eq!(
             unsafe {
@@ -11433,40 +11196,40 @@ fn bindgen_test_layout_VL53LX_histogram_bin_data_t() {
         );
     }
     test_field_vcsel_width();
-    fn test_field_VL53LX_p_005() {
+    fn test_field_vl53lx_p_005() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_005) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_005) as usize - ptr as usize
             },
             132usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_005)
+                stringify!(vl53lx_p_005)
             )
         );
     }
-    test_field_VL53LX_p_005();
-    fn test_field_VL53LX_p_015() {
+    test_field_vl53lx_p_005();
+    fn test_field_vl53lx_p_015() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_015) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_015) as usize - ptr as usize
             },
             134usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_015)
+                stringify!(vl53lx_p_015)
             )
         );
     }
-    test_field_VL53LX_p_015();
+    test_field_vl53lx_p_015();
     fn test_field_total_periods_elapsed() {
         assert_eq!(
             unsafe {
@@ -11603,23 +11366,23 @@ fn bindgen_test_layout_VL53LX_histogram_bin_data_t() {
         );
     }
     test_field_ambient_events_sum();
-    fn test_field_VL53LX_p_028() {
+    fn test_field_vl53lx_p_028() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_histogram_bin_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_028) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_028) as usize - ptr as usize
             },
             164usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_histogram_bin_data_t),
                 "::",
-                stringify!(VL53LX_p_028)
+                stringify!(vl53lx_p_028)
             )
         );
     }
-    test_field_VL53LX_p_028();
+    test_field_vl53lx_p_028();
     fn test_field_roi_config__user_roi_centre_spad() {
         assert_eq!(
             unsafe {
@@ -11662,15 +11425,15 @@ fn bindgen_test_layout_VL53LX_histogram_bin_data_t() {
 struct VL53LX_xtalk_histogram_shape_t {
     zone_id: u8,
     time_stamp: u32,
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
     bin_data: [u32; 12usize],
     phasecal_result__reference_phase: u16,
     phasecal_result__vcsel_start: u8,
     cal_config__vcsel_start: u8,
     vcsel_width: u16,
-    VL53LX_p_015: u16,
+    vl53lx_p_015: u16,
     zero_distance_phase: u16,
 }
 #[test]
@@ -11719,57 +11482,57 @@ fn bindgen_test_layout_VL53LX_xtalk_histogram_shape_t() {
         );
     }
     test_field_time_stamp();
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_histogram_shape_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_histogram_shape_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_histogram_shape_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             9usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_histogram_shape_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_histogram_shape_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             10usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_histogram_shape_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
+    test_field_vl53lx_p_021();
     fn test_field_bin_data() {
         assert_eq!(
             unsafe {
@@ -11856,23 +11619,23 @@ fn bindgen_test_layout_VL53LX_xtalk_histogram_shape_t() {
         );
     }
     test_field_vcsel_width();
-    fn test_field_VL53LX_p_015() {
+    fn test_field_vl53lx_p_015() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_histogram_shape_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_015) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_015) as usize - ptr as usize
             },
             66usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_histogram_shape_t),
                 "::",
-                stringify!(VL53LX_p_015)
+                stringify!(vl53lx_p_015)
             )
         );
     }
-    test_field_VL53LX_p_015();
+    test_field_vl53lx_p_015();
     fn test_field_zero_distance_phase() {
         assert_eq!(
             unsafe {
@@ -11947,17 +11710,17 @@ fn bindgen_test_layout_VL53LX_xtalk_histogram_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_gen1_algo_private_data_t {
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
-    VL53LX_p_029: u8,
-    VL53LX_p_016: i32,
-    VL53LX_p_043: [i32; 24usize],
-    VL53LX_p_068: [i32; 24usize],
-    VL53LX_p_040: [u8; 24usize],
-    VL53LX_p_018: [i32; 24usize],
-    VL53LX_p_014: [u16; 24usize],
-    VL53LX_p_008: [u16; 24usize],
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
+    vl53lx_p_029: u8,
+    vl53lx_p_016: i32,
+    vl53lx_p_043: [i32; 24usize],
+    vl53lx_p_068: [i32; 24usize],
+    vl53lx_p_040: [u8; 24usize],
+    vl53lx_p_018: [i32; 24usize],
+    vl53lx_p_014: [u16; 24usize],
+    vl53lx_p_008: [u16; 24usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_gen1_algo_private_data_t() {
@@ -11977,223 +11740,223 @@ fn bindgen_test_layout_VL53LX_hist_gen1_algo_private_data_t() {
             stringify!(VL53LX_hist_gen1_algo_private_data_t)
         )
     );
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
-    fn test_field_VL53LX_p_029() {
+    test_field_vl53lx_p_021();
+    fn test_field_vl53lx_p_029() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_029) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_029) as usize - ptr as usize
             },
             3usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_029)
+                stringify!(vl53lx_p_029)
             )
         );
     }
-    test_field_VL53LX_p_029();
-    fn test_field_VL53LX_p_016() {
+    test_field_vl53lx_p_029();
+    fn test_field_vl53lx_p_016() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_016) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_016) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_016)
+                stringify!(vl53lx_p_016)
             )
         );
     }
-    test_field_VL53LX_p_016();
-    fn test_field_VL53LX_p_043() {
+    test_field_vl53lx_p_016();
+    fn test_field_vl53lx_p_043() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_043) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_043) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_043)
+                stringify!(vl53lx_p_043)
             )
         );
     }
-    test_field_VL53LX_p_043();
-    fn test_field_VL53LX_p_068() {
+    test_field_vl53lx_p_043();
+    fn test_field_vl53lx_p_068() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_068) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_068) as usize - ptr as usize
             },
             104usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_068)
+                stringify!(vl53lx_p_068)
             )
         );
     }
-    test_field_VL53LX_p_068();
-    fn test_field_VL53LX_p_040() {
+    test_field_vl53lx_p_068();
+    fn test_field_vl53lx_p_040() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_040) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_040) as usize - ptr as usize
             },
             200usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_040)
+                stringify!(vl53lx_p_040)
             )
         );
     }
-    test_field_VL53LX_p_040();
-    fn test_field_VL53LX_p_018() {
+    test_field_vl53lx_p_040();
+    fn test_field_vl53lx_p_018() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_018) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_018) as usize - ptr as usize
             },
             224usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_018)
+                stringify!(vl53lx_p_018)
             )
         );
     }
-    test_field_VL53LX_p_018();
-    fn test_field_VL53LX_p_014() {
+    test_field_vl53lx_p_018();
+    fn test_field_vl53lx_p_014() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_014) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_014) as usize - ptr as usize
             },
             320usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_014)
+                stringify!(vl53lx_p_014)
             )
         );
     }
-    test_field_VL53LX_p_014();
-    fn test_field_VL53LX_p_008() {
+    test_field_vl53lx_p_014();
+    fn test_field_vl53lx_p_008() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen1_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_008) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_008) as usize - ptr as usize
             },
             368usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen1_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_008)
+                stringify!(vl53lx_p_008)
             )
         );
     }
-    test_field_VL53LX_p_008();
+    test_field_vl53lx_p_008();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_gen2_algo_filtered_data_t {
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
-    VL53LX_p_015: u16,
-    VL53LX_p_005: u8,
-    VL53LX_p_029: u8,
-    VL53LX_p_028: i32,
-    VL53LX_p_016: i32,
-    VL53LX_p_007: [i32; 24usize],
-    VL53LX_p_032: [i32; 24usize],
-    VL53LX_p_001: [i32; 24usize],
-    VL53LX_p_018: [i32; 24usize],
-    VL53LX_p_055: [i32; 24usize],
-    VL53LX_p_053: [i32; 24usize],
-    VL53LX_p_054: [i32; 24usize],
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
+    vl53lx_p_015: u16,
+    vl53lx_p_005: u8,
+    vl53lx_p_029: u8,
+    vl53lx_p_028: i32,
+    vl53lx_p_016: i32,
+    vl53lx_p_007: [i32; 24usize],
+    vl53lx_p_032: [i32; 24usize],
+    vl53lx_p_001: [i32; 24usize],
+    vl53lx_p_018: [i32; 24usize],
+    vl53lx_p_055: [i32; 24usize],
+    vl53lx_p_053: [i32; 24usize],
+    vl53lx_p_054: [i32; 24usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_gen2_algo_filtered_data_t() {
@@ -12213,289 +11976,289 @@ fn bindgen_test_layout_VL53LX_hist_gen2_algo_filtered_data_t() {
             stringify!(VL53LX_hist_gen2_algo_filtered_data_t)
         )
     );
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
-    fn test_field_VL53LX_p_015() {
+    test_field_vl53lx_p_021();
+    fn test_field_vl53lx_p_015() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_015) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_015) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_015)
+                stringify!(vl53lx_p_015)
             )
         );
     }
-    test_field_VL53LX_p_015();
-    fn test_field_VL53LX_p_005() {
+    test_field_vl53lx_p_015();
+    fn test_field_vl53lx_p_005() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_005) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_005) as usize - ptr as usize
             },
             6usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_005)
+                stringify!(vl53lx_p_005)
             )
         );
     }
-    test_field_VL53LX_p_005();
-    fn test_field_VL53LX_p_029() {
+    test_field_vl53lx_p_005();
+    fn test_field_vl53lx_p_029() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_029) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_029) as usize - ptr as usize
             },
             7usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_029)
+                stringify!(vl53lx_p_029)
             )
         );
     }
-    test_field_VL53LX_p_029();
-    fn test_field_VL53LX_p_028() {
+    test_field_vl53lx_p_029();
+    fn test_field_vl53lx_p_028() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_028) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_028) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_028)
+                stringify!(vl53lx_p_028)
             )
         );
     }
-    test_field_VL53LX_p_028();
-    fn test_field_VL53LX_p_016() {
+    test_field_vl53lx_p_028();
+    fn test_field_vl53lx_p_016() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_016) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_016) as usize - ptr as usize
             },
             12usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_016)
+                stringify!(vl53lx_p_016)
             )
         );
     }
-    test_field_VL53LX_p_016();
-    fn test_field_VL53LX_p_007() {
+    test_field_vl53lx_p_016();
+    fn test_field_vl53lx_p_007() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_007) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_007) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_007)
+                stringify!(vl53lx_p_007)
             )
         );
     }
-    test_field_VL53LX_p_007();
-    fn test_field_VL53LX_p_032() {
+    test_field_vl53lx_p_007();
+    fn test_field_vl53lx_p_032() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_032) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_032) as usize - ptr as usize
             },
             112usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_032)
+                stringify!(vl53lx_p_032)
             )
         );
     }
-    test_field_VL53LX_p_032();
-    fn test_field_VL53LX_p_001() {
+    test_field_vl53lx_p_032();
+    fn test_field_vl53lx_p_001() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_001) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_001) as usize - ptr as usize
             },
             208usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_001)
+                stringify!(vl53lx_p_001)
             )
         );
     }
-    test_field_VL53LX_p_001();
-    fn test_field_VL53LX_p_018() {
+    test_field_vl53lx_p_001();
+    fn test_field_vl53lx_p_018() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_018) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_018) as usize - ptr as usize
             },
             304usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_018)
+                stringify!(vl53lx_p_018)
             )
         );
     }
-    test_field_VL53LX_p_018();
-    fn test_field_VL53LX_p_055() {
+    test_field_vl53lx_p_018();
+    fn test_field_vl53lx_p_055() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_055) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_055) as usize - ptr as usize
             },
             400usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_055)
+                stringify!(vl53lx_p_055)
             )
         );
     }
-    test_field_VL53LX_p_055();
-    fn test_field_VL53LX_p_053() {
+    test_field_vl53lx_p_055();
+    fn test_field_vl53lx_p_053() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_053) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_053) as usize - ptr as usize
             },
             496usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_053)
+                stringify!(vl53lx_p_053)
             )
         );
     }
-    test_field_VL53LX_p_053();
-    fn test_field_VL53LX_p_054() {
+    test_field_vl53lx_p_053();
+    fn test_field_vl53lx_p_054() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_054) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_054) as usize - ptr as usize
             },
             592usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_054)
+                stringify!(vl53lx_p_054)
             )
         );
     }
-    test_field_VL53LX_p_054();
+    test_field_vl53lx_p_054();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_gen2_algo_detection_data_t {
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
-    VL53LX_p_031: i32,
-    VL53LX_p_069: [u8; 24usize],
-    VL53LX_p_070: [u8; 24usize],
-    VL53LX_p_014: [u32; 24usize],
-    VL53LX_p_008: [u16; 24usize],
-    VL53LX_p_040: [u8; 24usize],
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
+    vl53lx_p_031: i32,
+    vl53lx_p_069: [u8; 24usize],
+    vl53lx_p_070: [u8; 24usize],
+    vl53lx_p_014: [u32; 24usize],
+    vl53lx_p_008: [u16; 24usize],
+    vl53lx_p_040: [u8; 24usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_gen2_algo_detection_data_t() {
@@ -12515,186 +12278,186 @@ fn bindgen_test_layout_VL53LX_hist_gen2_algo_detection_data_t() {
             stringify!(VL53LX_hist_gen2_algo_detection_data_t)
         )
     );
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
-    fn test_field_VL53LX_p_031() {
+    test_field_vl53lx_p_021();
+    fn test_field_vl53lx_p_031() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_031) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_031) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_031)
+                stringify!(vl53lx_p_031)
             )
         );
     }
-    test_field_VL53LX_p_031();
-    fn test_field_VL53LX_p_069() {
+    test_field_vl53lx_p_031();
+    fn test_field_vl53lx_p_069() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_069) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_069) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_069)
+                stringify!(vl53lx_p_069)
             )
         );
     }
-    test_field_VL53LX_p_069();
-    fn test_field_VL53LX_p_070() {
+    test_field_vl53lx_p_069();
+    fn test_field_vl53lx_p_070() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_070) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_070) as usize - ptr as usize
             },
             32usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_070)
+                stringify!(vl53lx_p_070)
             )
         );
     }
-    test_field_VL53LX_p_070();
-    fn test_field_VL53LX_p_014() {
+    test_field_vl53lx_p_070();
+    fn test_field_vl53lx_p_014() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_014) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_014) as usize - ptr as usize
             },
             56usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_014)
+                stringify!(vl53lx_p_014)
             )
         );
     }
-    test_field_VL53LX_p_014();
-    fn test_field_VL53LX_p_008() {
+    test_field_vl53lx_p_014();
+    fn test_field_vl53lx_p_008() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_008) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_008) as usize - ptr as usize
             },
             152usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_008)
+                stringify!(vl53lx_p_008)
             )
         );
     }
-    test_field_VL53LX_p_008();
-    fn test_field_VL53LX_p_040() {
+    test_field_vl53lx_p_008();
+    fn test_field_vl53lx_p_040() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen2_algo_detection_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_040) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_040) as usize - ptr as usize
             },
             200usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen2_algo_detection_data_t),
                 "::",
-                stringify!(VL53LX_p_040)
+                stringify!(vl53lx_p_040)
             )
         );
     }
-    test_field_VL53LX_p_040();
+    test_field_vl53lx_p_040();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_pulse_data_t {
-    VL53LX_p_012: u8,
-    VL53LX_p_019: u8,
-    VL53LX_p_023: u8,
-    VL53LX_p_024: u8,
-    VL53LX_p_013: u8,
-    VL53LX_p_025: u8,
-    VL53LX_p_051: u8,
-    VL53LX_p_016: i32,
-    VL53LX_p_017: i32,
-    VL53LX_p_010: i32,
-    VL53LX_p_026: u32,
-    VL53LX_p_011: u32,
-    VL53LX_p_027: u32,
-    VL53LX_p_002: u16,
+    vl53lx_p_012: u8,
+    vl53lx_p_019: u8,
+    vl53lx_p_023: u8,
+    vl53lx_p_024: u8,
+    vl53lx_p_013: u8,
+    vl53lx_p_025: u8,
+    vl53lx_p_051: u8,
+    vl53lx_p_016: i32,
+    vl53lx_p_017: i32,
+    vl53lx_p_010: i32,
+    vl53lx_p_026: u32,
+    vl53lx_p_011: u32,
+    vl53lx_p_027: u32,
+    vl53lx_p_002: u16,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_pulse_data_t() {
@@ -12708,270 +12471,270 @@ fn bindgen_test_layout_VL53LX_hist_pulse_data_t() {
         4usize,
         concat!("Alignment of ", stringify!(VL53LX_hist_pulse_data_t))
     );
-    fn test_field_VL53LX_p_012() {
+    fn test_field_vl53lx_p_012() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_012) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_012) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_012)
+                stringify!(vl53lx_p_012)
             )
         );
     }
-    test_field_VL53LX_p_012();
-    fn test_field_VL53LX_p_019() {
+    test_field_vl53lx_p_012();
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_023() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_023() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_023) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_023) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_023)
+                stringify!(vl53lx_p_023)
             )
         );
     }
-    test_field_VL53LX_p_023();
-    fn test_field_VL53LX_p_024() {
+    test_field_vl53lx_p_023();
+    fn test_field_vl53lx_p_024() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_024) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_024) as usize - ptr as usize
             },
             3usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_024)
+                stringify!(vl53lx_p_024)
             )
         );
     }
-    test_field_VL53LX_p_024();
-    fn test_field_VL53LX_p_013() {
+    test_field_vl53lx_p_024();
+    fn test_field_vl53lx_p_013() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_013) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_013) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_013)
+                stringify!(vl53lx_p_013)
             )
         );
     }
-    test_field_VL53LX_p_013();
-    fn test_field_VL53LX_p_025() {
+    test_field_vl53lx_p_013();
+    fn test_field_vl53lx_p_025() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_025) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_025) as usize - ptr as usize
             },
             5usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_025)
+                stringify!(vl53lx_p_025)
             )
         );
     }
-    test_field_VL53LX_p_025();
-    fn test_field_VL53LX_p_051() {
+    test_field_vl53lx_p_025();
+    fn test_field_vl53lx_p_051() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_051) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_051) as usize - ptr as usize
             },
             6usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_051)
+                stringify!(vl53lx_p_051)
             )
         );
     }
-    test_field_VL53LX_p_051();
-    fn test_field_VL53LX_p_016() {
+    test_field_vl53lx_p_051();
+    fn test_field_vl53lx_p_016() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_016) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_016) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_016)
+                stringify!(vl53lx_p_016)
             )
         );
     }
-    test_field_VL53LX_p_016();
-    fn test_field_VL53LX_p_017() {
+    test_field_vl53lx_p_016();
+    fn test_field_vl53lx_p_017() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_017) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_017) as usize - ptr as usize
             },
             12usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_017)
+                stringify!(vl53lx_p_017)
             )
         );
     }
-    test_field_VL53LX_p_017();
-    fn test_field_VL53LX_p_010() {
+    test_field_vl53lx_p_017();
+    fn test_field_vl53lx_p_010() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_010) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_010) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_010)
+                stringify!(vl53lx_p_010)
             )
         );
     }
-    test_field_VL53LX_p_010();
-    fn test_field_VL53LX_p_026() {
+    test_field_vl53lx_p_010();
+    fn test_field_vl53lx_p_026() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_026) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_026) as usize - ptr as usize
             },
             20usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_026)
+                stringify!(vl53lx_p_026)
             )
         );
     }
-    test_field_VL53LX_p_026();
-    fn test_field_VL53LX_p_011() {
+    test_field_vl53lx_p_026();
+    fn test_field_vl53lx_p_011() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_011) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_011) as usize - ptr as usize
             },
             24usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_011)
+                stringify!(vl53lx_p_011)
             )
         );
     }
-    test_field_VL53LX_p_011();
-    fn test_field_VL53LX_p_027() {
+    test_field_vl53lx_p_011();
+    fn test_field_vl53lx_p_027() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_027) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_027) as usize - ptr as usize
             },
             28usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_027)
+                stringify!(vl53lx_p_027)
             )
         );
     }
-    test_field_VL53LX_p_027();
-    fn test_field_VL53LX_p_002() {
+    test_field_vl53lx_p_027();
+    fn test_field_vl53lx_p_002() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_pulse_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_002) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_002) as usize - ptr as usize
             },
             32usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_pulse_data_t),
                 "::",
-                stringify!(VL53LX_p_002)
+                stringify!(vl53lx_p_002)
             )
         );
     }
-    test_field_VL53LX_p_002();
+    test_field_vl53lx_p_002();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_gen3_algo_private_data_t {
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
-    VL53LX_p_030: u8,
-    VL53LX_p_039: u8,
-    VL53LX_p_028: i32,
-    VL53LX_p_031: i32,
-    VL53LX_p_040: [u8; 24usize],
-    VL53LX_p_041: [u8; 24usize],
-    VL53LX_p_042: [u8; 24usize],
-    VL53LX_p_052: [i32; 24usize],
-    VL53LX_p_043: [i32; 24usize],
-    VL53LX_p_018: [i32; 24usize],
-    VL53LX_p_044: u8,
-    VL53LX_p_045: u8,
-    VL53LX_p_046: u8,
-    VL53LX_p_003: [VL53LX_hist_pulse_data_t; 8usize],
-    VL53LX_p_006: VL53LX_histogram_bin_data_t,
-    VL53LX_p_047: VL53LX_histogram_bin_data_t,
-    VL53LX_p_048: VL53LX_histogram_bin_data_t,
-    VL53LX_p_049: VL53LX_histogram_bin_data_t,
-    VL53LX_p_050: VL53LX_histogram_bin_data_t,
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
+    vl53lx_p_030: u8,
+    vl53lx_p_039: u8,
+    vl53lx_p_028: i32,
+    vl53lx_p_031: i32,
+    vl53lx_p_040: [u8; 24usize],
+    vl53lx_p_041: [u8; 24usize],
+    vl53lx_p_042: [u8; 24usize],
+    vl53lx_p_052: [i32; 24usize],
+    vl53lx_p_043: [i32; 24usize],
+    vl53lx_p_018: [i32; 24usize],
+    vl53lx_p_044: u8,
+    vl53lx_p_045: u8,
+    vl53lx_p_046: u8,
+    vl53lx_p_003: [VL53LX_hist_pulse_data_t; 8usize],
+    vl53lx_p_006: VL53LX_histogram_bin_data_t,
+    vl53lx_p_047: VL53LX_histogram_bin_data_t,
+    vl53lx_p_048: VL53LX_histogram_bin_data_t,
+    vl53lx_p_049: VL53LX_histogram_bin_data_t,
+    vl53lx_p_050: VL53LX_histogram_bin_data_t,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_gen3_algo_private_data_t() {
@@ -12991,415 +12754,415 @@ fn bindgen_test_layout_VL53LX_hist_gen3_algo_private_data_t() {
             stringify!(VL53LX_hist_gen3_algo_private_data_t)
         )
     );
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
-    fn test_field_VL53LX_p_030() {
+    test_field_vl53lx_p_021();
+    fn test_field_vl53lx_p_030() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_030) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_030) as usize - ptr as usize
             },
             3usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_030)
+                stringify!(vl53lx_p_030)
             )
         );
     }
-    test_field_VL53LX_p_030();
-    fn test_field_VL53LX_p_039() {
+    test_field_vl53lx_p_030();
+    fn test_field_vl53lx_p_039() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_039) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_039) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_039)
+                stringify!(vl53lx_p_039)
             )
         );
     }
-    test_field_VL53LX_p_039();
-    fn test_field_VL53LX_p_028() {
+    test_field_vl53lx_p_039();
+    fn test_field_vl53lx_p_028() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_028) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_028) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_028)
+                stringify!(vl53lx_p_028)
             )
         );
     }
-    test_field_VL53LX_p_028();
-    fn test_field_VL53LX_p_031() {
+    test_field_vl53lx_p_028();
+    fn test_field_vl53lx_p_031() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_031) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_031) as usize - ptr as usize
             },
             12usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_031)
+                stringify!(vl53lx_p_031)
             )
         );
     }
-    test_field_VL53LX_p_031();
-    fn test_field_VL53LX_p_040() {
+    test_field_vl53lx_p_031();
+    fn test_field_vl53lx_p_040() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_040) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_040) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_040)
+                stringify!(vl53lx_p_040)
             )
         );
     }
-    test_field_VL53LX_p_040();
-    fn test_field_VL53LX_p_041() {
+    test_field_vl53lx_p_040();
+    fn test_field_vl53lx_p_041() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_041) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_041) as usize - ptr as usize
             },
             40usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_041)
+                stringify!(vl53lx_p_041)
             )
         );
     }
-    test_field_VL53LX_p_041();
-    fn test_field_VL53LX_p_042() {
+    test_field_vl53lx_p_041();
+    fn test_field_vl53lx_p_042() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_042) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_042) as usize - ptr as usize
             },
             64usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_042)
+                stringify!(vl53lx_p_042)
             )
         );
     }
-    test_field_VL53LX_p_042();
-    fn test_field_VL53LX_p_052() {
+    test_field_vl53lx_p_042();
+    fn test_field_vl53lx_p_052() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_052) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_052) as usize - ptr as usize
             },
             88usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_052)
+                stringify!(vl53lx_p_052)
             )
         );
     }
-    test_field_VL53LX_p_052();
-    fn test_field_VL53LX_p_043() {
+    test_field_vl53lx_p_052();
+    fn test_field_vl53lx_p_043() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_043) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_043) as usize - ptr as usize
             },
             184usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_043)
+                stringify!(vl53lx_p_043)
             )
         );
     }
-    test_field_VL53LX_p_043();
-    fn test_field_VL53LX_p_018() {
+    test_field_vl53lx_p_043();
+    fn test_field_vl53lx_p_018() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_018) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_018) as usize - ptr as usize
             },
             280usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_018)
+                stringify!(vl53lx_p_018)
             )
         );
     }
-    test_field_VL53LX_p_018();
-    fn test_field_VL53LX_p_044() {
+    test_field_vl53lx_p_018();
+    fn test_field_vl53lx_p_044() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_044) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_044) as usize - ptr as usize
             },
             376usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_044)
+                stringify!(vl53lx_p_044)
             )
         );
     }
-    test_field_VL53LX_p_044();
-    fn test_field_VL53LX_p_045() {
+    test_field_vl53lx_p_044();
+    fn test_field_vl53lx_p_045() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_045) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_045) as usize - ptr as usize
             },
             377usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_045)
+                stringify!(vl53lx_p_045)
             )
         );
     }
-    test_field_VL53LX_p_045();
-    fn test_field_VL53LX_p_046() {
+    test_field_vl53lx_p_045();
+    fn test_field_vl53lx_p_046() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_046) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_046) as usize - ptr as usize
             },
             378usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_046)
+                stringify!(vl53lx_p_046)
             )
         );
     }
-    test_field_VL53LX_p_046();
-    fn test_field_VL53LX_p_003() {
+    test_field_vl53lx_p_046();
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             380usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
-    fn test_field_VL53LX_p_006() {
+    test_field_vl53lx_p_003();
+    fn test_field_vl53lx_p_006() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_006) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_006) as usize - ptr as usize
             },
             668usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_006)
+                stringify!(vl53lx_p_006)
             )
         );
     }
-    test_field_VL53LX_p_006();
-    fn test_field_VL53LX_p_047() {
+    test_field_vl53lx_p_006();
+    fn test_field_vl53lx_p_047() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_047) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_047) as usize - ptr as usize
             },
             840usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_047)
+                stringify!(vl53lx_p_047)
             )
         );
     }
-    test_field_VL53LX_p_047();
-    fn test_field_VL53LX_p_048() {
+    test_field_vl53lx_p_047();
+    fn test_field_vl53lx_p_048() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_048) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_048) as usize - ptr as usize
             },
             1012usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_048)
+                stringify!(vl53lx_p_048)
             )
         );
     }
-    test_field_VL53LX_p_048();
-    fn test_field_VL53LX_p_049() {
+    test_field_vl53lx_p_048();
+    fn test_field_vl53lx_p_049() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_049) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_049) as usize - ptr as usize
             },
             1184usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_049)
+                stringify!(vl53lx_p_049)
             )
         );
     }
-    test_field_VL53LX_p_049();
-    fn test_field_VL53LX_p_050() {
+    test_field_vl53lx_p_049();
+    fn test_field_vl53lx_p_050() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen3_algo_private_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_050) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_050) as usize - ptr as usize
             },
             1356usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen3_algo_private_data_t),
                 "::",
-                stringify!(VL53LX_p_050)
+                stringify!(vl53lx_p_050)
             )
         );
     }
-    test_field_VL53LX_p_050();
+    test_field_vl53lx_p_050();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_hist_gen4_algo_filtered_data_t {
-    VL53LX_p_019: u8,
-    VL53LX_p_020: u8,
-    VL53LX_p_021: u8,
-    VL53LX_p_007: [i32; 24usize],
-    VL53LX_p_032: [i32; 24usize],
-    VL53LX_p_001: [i32; 24usize],
-    VL53LX_p_053: [i32; 24usize],
-    VL53LX_p_054: [i32; 24usize],
-    VL53LX_p_040: [u8; 24usize],
+    vl53lx_p_019: u8,
+    vl53lx_p_020: u8,
+    vl53lx_p_021: u8,
+    vl53lx_p_007: [i32; 24usize],
+    vl53lx_p_032: [i32; 24usize],
+    vl53lx_p_001: [i32; 24usize],
+    vl53lx_p_053: [i32; 24usize],
+    vl53lx_p_054: [i32; 24usize],
+    vl53lx_p_040: [u8; 24usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_hist_gen4_algo_filtered_data_t() {
@@ -13419,168 +13182,168 @@ fn bindgen_test_layout_VL53LX_hist_gen4_algo_filtered_data_t() {
             stringify!(VL53LX_hist_gen4_algo_filtered_data_t)
         )
     );
-    fn test_field_VL53LX_p_019() {
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_020() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
-    fn test_field_VL53LX_p_021() {
+    test_field_vl53lx_p_020();
+    fn test_field_vl53lx_p_021() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_021) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_021) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_021)
+                stringify!(vl53lx_p_021)
             )
         );
     }
-    test_field_VL53LX_p_021();
-    fn test_field_VL53LX_p_007() {
+    test_field_vl53lx_p_021();
+    fn test_field_vl53lx_p_007() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_007) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_007) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_007)
+                stringify!(vl53lx_p_007)
             )
         );
     }
-    test_field_VL53LX_p_007();
-    fn test_field_VL53LX_p_032() {
+    test_field_vl53lx_p_007();
+    fn test_field_vl53lx_p_032() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_032) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_032) as usize - ptr as usize
             },
             100usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_032)
+                stringify!(vl53lx_p_032)
             )
         );
     }
-    test_field_VL53LX_p_032();
-    fn test_field_VL53LX_p_001() {
+    test_field_vl53lx_p_032();
+    fn test_field_vl53lx_p_001() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_001) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_001) as usize - ptr as usize
             },
             196usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_001)
+                stringify!(vl53lx_p_001)
             )
         );
     }
-    test_field_VL53LX_p_001();
-    fn test_field_VL53LX_p_053() {
+    test_field_vl53lx_p_001();
+    fn test_field_vl53lx_p_053() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_053) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_053) as usize - ptr as usize
             },
             292usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_053)
+                stringify!(vl53lx_p_053)
             )
         );
     }
-    test_field_VL53LX_p_053();
-    fn test_field_VL53LX_p_054() {
+    test_field_vl53lx_p_053();
+    fn test_field_vl53lx_p_054() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_054) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_054) as usize - ptr as usize
             },
             388usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_054)
+                stringify!(vl53lx_p_054)
             )
         );
     }
-    test_field_VL53LX_p_054();
-    fn test_field_VL53LX_p_040() {
+    test_field_vl53lx_p_054();
+    fn test_field_vl53lx_p_040() {
         assert_eq!(
             unsafe {
                 let uninit =
                     ::std::mem::MaybeUninit::<VL53LX_hist_gen4_algo_filtered_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_040) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_040) as usize - ptr as usize
             },
             484usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_gen4_algo_filtered_data_t),
                 "::",
-                stringify!(VL53LX_p_040)
+                stringify!(vl53lx_p_040)
             )
         );
     }
-    test_field_VL53LX_p_040();
+    test_field_vl53lx_p_040();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -13675,7 +13438,7 @@ fn bindgen_test_layout_VL53LX_ll_version_t() {
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_refspadchar_config_t {
     device_test_mode: u8,
-    VL53LX_p_005: u8,
+    vl53lx_p_005: u8,
     timeout_us: u32,
     target_count_rate_mcps: u16,
     min_count_rate_limit_mcps: u16,
@@ -13710,23 +13473,23 @@ fn bindgen_test_layout_VL53LX_refspadchar_config_t() {
         );
     }
     test_field_device_test_mode();
-    fn test_field_VL53LX_p_005() {
+    fn test_field_vl53lx_p_005() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_refspadchar_config_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_005) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_005) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_refspadchar_config_t),
                 "::",
-                stringify!(VL53LX_p_005)
+                stringify!(vl53lx_p_005)
             )
         );
     }
-    test_field_VL53LX_p_005();
+    test_field_vl53lx_p_005();
     fn test_field_timeout_us() {
         assert_eq!(
             unsafe {
@@ -14254,7 +14017,7 @@ fn bindgen_test_layout_VL53LX_zonecal_config_t() {
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_ssc_config_t {
     array_select: VL53LX_DeviceSscArray,
-    VL53LX_p_005: u8,
+    vl53lx_p_005: u8,
     vcsel_start: u8,
     vcsel_width: u8,
     timeout_us: u32,
@@ -14289,23 +14052,23 @@ fn bindgen_test_layout_VL53LX_ssc_config_t() {
         );
     }
     test_field_array_select();
-    fn test_field_VL53LX_p_005() {
+    fn test_field_vl53lx_p_005() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_ssc_config_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_005) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_005) as usize - ptr as usize
             },
             1usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_ssc_config_t),
                 "::",
-                stringify!(VL53LX_p_005)
+                stringify!(vl53lx_p_005)
             )
         );
     }
-    test_field_VL53LX_p_005();
+    test_field_vl53lx_p_005();
     fn test_field_vcsel_start() {
         assert_eq!(
             unsafe {
@@ -17078,32 +16841,32 @@ fn bindgen_test_layout_VL53LX_smudge_corrector_data_t() {
 struct VL53LX_range_data_t {
     range_id: u8,
     time_stamp: u32,
-    VL53LX_p_012: u8,
-    VL53LX_p_019: u8,
-    VL53LX_p_023: u8,
-    VL53LX_p_024: u8,
-    VL53LX_p_013: u8,
-    VL53LX_p_025: u8,
+    vl53lx_p_012: u8,
+    vl53lx_p_019: u8,
+    vl53lx_p_023: u8,
+    vl53lx_p_024: u8,
+    vl53lx_p_013: u8,
+    vl53lx_p_025: u8,
     width: u16,
-    VL53LX_p_029: u8,
+    vl53lx_p_029: u8,
     fast_osc_frequency: u16,
     zero_distance_phase: u16,
-    VL53LX_p_004: u16,
+    vl53lx_p_004: u16,
     total_periods_elapsed: u32,
     peak_duration_us: u32,
     woi_duration_us: u32,
-    VL53LX_p_016: u32,
-    VL53LX_p_017: u32,
-    VL53LX_p_010: i32,
+    vl53lx_p_016: u32,
+    vl53lx_p_017: u32,
+    vl53lx_p_010: i32,
     peak_signal_count_rate_mcps: u16,
     avg_signal_count_rate_mcps: u16,
     ambient_count_rate_mcps: u16,
     total_rate_per_spad_mcps: u16,
-    VL53LX_p_009: u32,
-    VL53LX_p_002: u16,
-    VL53LX_p_026: u16,
-    VL53LX_p_011: u16,
-    VL53LX_p_027: u16,
+    vl53lx_p_009: u32,
+    vl53lx_p_002: u16,
+    vl53lx_p_026: u16,
+    vl53lx_p_011: u16,
+    vl53lx_p_027: u16,
     min_range_mm: i16,
     median_range_mm: i16,
     max_range_mm: i16,
@@ -17155,108 +16918,108 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
         );
     }
     test_field_time_stamp();
-    fn test_field_VL53LX_p_012() {
+    fn test_field_vl53lx_p_012() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_012) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_012) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_012)
+                stringify!(vl53lx_p_012)
             )
         );
     }
-    test_field_VL53LX_p_012();
-    fn test_field_VL53LX_p_019() {
+    test_field_vl53lx_p_012();
+    fn test_field_vl53lx_p_019() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_019) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_019) as usize - ptr as usize
             },
             9usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_019)
+                stringify!(vl53lx_p_019)
             )
         );
     }
-    test_field_VL53LX_p_019();
-    fn test_field_VL53LX_p_023() {
+    test_field_vl53lx_p_019();
+    fn test_field_vl53lx_p_023() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_023) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_023) as usize - ptr as usize
             },
             10usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_023)
+                stringify!(vl53lx_p_023)
             )
         );
     }
-    test_field_VL53LX_p_023();
-    fn test_field_VL53LX_p_024() {
+    test_field_vl53lx_p_023();
+    fn test_field_vl53lx_p_024() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_024) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_024) as usize - ptr as usize
             },
             11usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_024)
+                stringify!(vl53lx_p_024)
             )
         );
     }
-    test_field_VL53LX_p_024();
-    fn test_field_VL53LX_p_013() {
+    test_field_vl53lx_p_024();
+    fn test_field_vl53lx_p_013() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_013) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_013) as usize - ptr as usize
             },
             12usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_013)
+                stringify!(vl53lx_p_013)
             )
         );
     }
-    test_field_VL53LX_p_013();
-    fn test_field_VL53LX_p_025() {
+    test_field_vl53lx_p_013();
+    fn test_field_vl53lx_p_025() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_025) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_025) as usize - ptr as usize
             },
             13usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_025)
+                stringify!(vl53lx_p_025)
             )
         );
     }
-    test_field_VL53LX_p_025();
+    test_field_vl53lx_p_025();
     fn test_field_width() {
         assert_eq!(
             unsafe {
@@ -17274,23 +17037,23 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
         );
     }
     test_field_width();
-    fn test_field_VL53LX_p_029() {
+    fn test_field_vl53lx_p_029() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_029) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_029) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_029)
+                stringify!(vl53lx_p_029)
             )
         );
     }
-    test_field_VL53LX_p_029();
+    test_field_vl53lx_p_029();
     fn test_field_fast_osc_frequency() {
         assert_eq!(
             unsafe {
@@ -17325,23 +17088,23 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
         );
     }
     test_field_zero_distance_phase();
-    fn test_field_VL53LX_p_004() {
+    fn test_field_vl53lx_p_004() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_004) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_004) as usize - ptr as usize
             },
             22usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_004)
+                stringify!(vl53lx_p_004)
             )
         );
     }
-    test_field_VL53LX_p_004();
+    test_field_vl53lx_p_004();
     fn test_field_total_periods_elapsed() {
         assert_eq!(
             unsafe {
@@ -17393,57 +17156,57 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
         );
     }
     test_field_woi_duration_us();
-    fn test_field_VL53LX_p_016() {
+    fn test_field_vl53lx_p_016() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_016) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_016) as usize - ptr as usize
             },
             36usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_016)
+                stringify!(vl53lx_p_016)
             )
         );
     }
-    test_field_VL53LX_p_016();
-    fn test_field_VL53LX_p_017() {
+    test_field_vl53lx_p_016();
+    fn test_field_vl53lx_p_017() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_017) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_017) as usize - ptr as usize
             },
             40usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_017)
+                stringify!(vl53lx_p_017)
             )
         );
     }
-    test_field_VL53LX_p_017();
-    fn test_field_VL53LX_p_010() {
+    test_field_vl53lx_p_017();
+    fn test_field_vl53lx_p_010() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_010) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_010) as usize - ptr as usize
             },
             44usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_010)
+                stringify!(vl53lx_p_010)
             )
         );
     }
-    test_field_VL53LX_p_010();
+    test_field_vl53lx_p_010();
     fn test_field_peak_signal_count_rate_mcps() {
         assert_eq!(
             unsafe {
@@ -17512,91 +17275,91 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
         );
     }
     test_field_total_rate_per_spad_mcps();
-    fn test_field_VL53LX_p_009() {
+    fn test_field_vl53lx_p_009() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_009) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_009) as usize - ptr as usize
             },
             56usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_009)
+                stringify!(vl53lx_p_009)
             )
         );
     }
-    test_field_VL53LX_p_009();
-    fn test_field_VL53LX_p_002() {
+    test_field_vl53lx_p_009();
+    fn test_field_vl53lx_p_002() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_002) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_002) as usize - ptr as usize
             },
             60usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_002)
+                stringify!(vl53lx_p_002)
             )
         );
     }
-    test_field_VL53LX_p_002();
-    fn test_field_VL53LX_p_026() {
+    test_field_vl53lx_p_002();
+    fn test_field_vl53lx_p_026() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_026) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_026) as usize - ptr as usize
             },
             62usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_026)
+                stringify!(vl53lx_p_026)
             )
         );
     }
-    test_field_VL53LX_p_026();
-    fn test_field_VL53LX_p_011() {
+    test_field_vl53lx_p_026();
+    fn test_field_vl53lx_p_011() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_011) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_011) as usize - ptr as usize
             },
             64usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_011)
+                stringify!(vl53lx_p_011)
             )
         );
     }
-    test_field_VL53LX_p_011();
-    fn test_field_VL53LX_p_027() {
+    test_field_vl53lx_p_011();
+    fn test_field_vl53lx_p_027() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_027) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_027) as usize - ptr as usize
             },
             66usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_data_t),
                 "::",
-                stringify!(VL53LX_p_027)
+                stringify!(vl53lx_p_027)
             )
         );
     }
-    test_field_VL53LX_p_027();
+    test_field_vl53lx_p_027();
     fn test_field_min_range_mm() {
         assert_eq!(
             unsafe {
@@ -17669,16 +17432,16 @@ fn bindgen_test_layout_VL53LX_range_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_range_results_t {
-    cfg_device_state: VL53LX_DeviceState,
-    rd_device_state: VL53LX_DeviceState,
+    cfg_device_state: Vl53lxDeviceState,
+    rd_device_state: Vl53lxDeviceState,
     zone_id: u8,
     stream_count: u8,
-    VL53LX_p_022: [i16; 5usize],
+    vl53lx_p_022: [i16; 5usize],
     wrap_dmax_mm: i16,
     device_status: u8,
     max_results: u8,
     active_results: u8,
-    VL53LX_p_003: [VL53LX_range_data_t; 4usize],
+    vl53lx_p_003: [VL53LX_range_data_t; 4usize],
     xmonitor: VL53LX_range_data_t,
     smudge_corrector_data: VL53LX_smudge_corrector_data_t,
 }
@@ -17762,23 +17525,23 @@ fn bindgen_test_layout_VL53LX_range_results_t() {
         );
     }
     test_field_stream_count();
-    fn test_field_VL53LX_p_022() {
+    fn test_field_vl53lx_p_022() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_022) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_022) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_results_t),
                 "::",
-                stringify!(VL53LX_p_022)
+                stringify!(vl53lx_p_022)
             )
         );
     }
-    test_field_VL53LX_p_022();
+    test_field_vl53lx_p_022();
     fn test_field_wrap_dmax_mm() {
         assert_eq!(
             unsafe {
@@ -17847,23 +17610,23 @@ fn bindgen_test_layout_VL53LX_range_results_t() {
         );
     }
     test_field_active_results();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_range_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             20usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_range_results_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
     fn test_field_xmonitor() {
         assert_eq!(
             unsafe {
@@ -18087,7 +17850,7 @@ struct VL53LX_xtalk_range_results_t {
     max_sigma_status: u8,
     max_results: u8,
     active_results: u8,
-    VL53LX_p_003: [VL53LX_xtalk_range_data_t; 5usize],
+    vl53lx_p_003: [VL53LX_xtalk_range_data_t; 5usize],
     central_histogram_sum: VL53LX_histogram_bin_data_t,
     central_histogram_avg: VL53LX_histogram_bin_data_t,
     central_histogram__window_start: u8,
@@ -18210,23 +17973,23 @@ fn bindgen_test_layout_VL53LX_xtalk_range_results_t() {
         );
     }
     test_field_active_results();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_range_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_range_results_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
     fn test_field_central_histogram_sum() {
         assert_eq!(
             unsafe {
@@ -18356,7 +18119,7 @@ struct VL53LX_offset_range_data_t {
     no_of_samples: u8,
     effective_spads: u32,
     peak_rate_mcps: u32,
-    VL53LX_p_002: u32,
+    vl53lx_p_002: u32,
     median_range_mm: i32,
     range_mm_offset: i32,
 }
@@ -18475,23 +18238,23 @@ fn bindgen_test_layout_VL53LX_offset_range_data_t() {
         );
     }
     test_field_peak_rate_mcps();
-    fn test_field_VL53LX_p_002() {
+    fn test_field_vl53lx_p_002() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_offset_range_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_002) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_002) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_offset_range_data_t),
                 "::",
-                stringify!(VL53LX_p_002)
+                stringify!(vl53lx_p_002)
             )
         );
     }
-    test_field_VL53LX_p_002();
+    test_field_vl53lx_p_002();
     fn test_field_median_range_mm() {
         assert_eq!(
             unsafe {
@@ -18536,7 +18299,7 @@ struct VL53LX_offset_range_results_t {
     cal_report: u8,
     max_results: u8,
     active_results: u8,
-    VL53LX_p_003: [VL53LX_offset_range_data_t; 3usize],
+    vl53lx_p_003: [VL53LX_offset_range_data_t; 3usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_offset_range_results_t() {
@@ -18652,23 +18415,23 @@ fn bindgen_test_layout_VL53LX_offset_range_results_t() {
         );
     }
     test_field_active_results();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_offset_range_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_offset_range_results_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -18910,9 +18673,9 @@ fn bindgen_test_layout_VL53LX_per_vcsel_period_offset_cal_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_object_data_t {
-    VL53LX_p_016: u32,
-    VL53LX_p_017: u32,
-    VL53LX_p_011: u16,
+    vl53lx_p_016: u32,
+    vl53lx_p_017: u32,
+    vl53lx_p_011: u16,
     range_status: u8,
 }
 #[test]
@@ -18927,57 +18690,57 @@ fn bindgen_test_layout_VL53LX_object_data_t() {
         4usize,
         concat!("Alignment of ", stringify!(VL53LX_object_data_t))
     );
-    fn test_field_VL53LX_p_016() {
+    fn test_field_vl53lx_p_016() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_object_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_016) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_016) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_object_data_t),
                 "::",
-                stringify!(VL53LX_p_016)
+                stringify!(vl53lx_p_016)
             )
         );
     }
-    test_field_VL53LX_p_016();
-    fn test_field_VL53LX_p_017() {
+    test_field_vl53lx_p_016();
+    fn test_field_vl53lx_p_017() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_object_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_017) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_017) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_object_data_t),
                 "::",
-                stringify!(VL53LX_p_017)
+                stringify!(vl53lx_p_017)
             )
         );
     }
-    test_field_VL53LX_p_017();
-    fn test_field_VL53LX_p_011() {
+    test_field_vl53lx_p_017();
+    fn test_field_vl53lx_p_011() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_object_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_011) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_011) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_object_data_t),
                 "::",
-                stringify!(VL53LX_p_011)
+                stringify!(vl53lx_p_011)
             )
         );
     }
-    test_field_VL53LX_p_011();
+    test_field_vl53lx_p_011();
     fn test_field_range_status() {
         assert_eq!(
             unsafe {
@@ -18999,13 +18762,13 @@ fn bindgen_test_layout_VL53LX_object_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_zone_objects_t {
-    cfg_device_state: VL53LX_DeviceState,
-    rd_device_state: VL53LX_DeviceState,
+    cfg_device_state: Vl53lxDeviceState,
+    rd_device_state: Vl53lxDeviceState,
     zone_id: u8,
     stream_count: u8,
     max_objects: u8,
     active_objects: u8,
-    VL53LX_p_003: [VL53LX_object_data_t; 4usize],
+    vl53lx_p_003: [VL53LX_object_data_t; 4usize],
     xmonitor: VL53LX_object_data_t,
 }
 #[test]
@@ -19122,23 +18885,23 @@ fn bindgen_test_layout_VL53LX_zone_objects_t() {
         );
     }
     test_field_active_objects();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_objects_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_objects_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
     fn test_field_xmonitor() {
         assert_eq!(
             unsafe {
@@ -19162,7 +18925,7 @@ fn bindgen_test_layout_VL53LX_zone_objects_t() {
 struct VL53LX_zone_results_t {
     max_zones: u8,
     active_zones: u8,
-    VL53LX_p_003: [VL53LX_zone_objects_t; 16usize],
+    vl53lx_p_003: [VL53LX_zone_objects_t; 16usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_zone_results_t() {
@@ -19210,31 +18973,31 @@ fn bindgen_test_layout_VL53LX_zone_results_t() {
         );
     }
     test_field_active_zones();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_results_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_zone_hist_info_t {
-    rd_device_state: VL53LX_DeviceState,
+    rd_device_state: Vl53lxDeviceState,
     number_of_ambient_bins: u8,
     result__dss_actual_effective_spads: u16,
-    VL53LX_p_005: u8,
+    vl53lx_p_005: u8,
     total_periods_elapsed: u32,
     ambient_events_sum: i32,
 }
@@ -19302,23 +19065,23 @@ fn bindgen_test_layout_VL53LX_zone_hist_info_t() {
         );
     }
     test_field_result__dss_actual_effective_spads();
-    fn test_field_VL53LX_p_005() {
+    fn test_field_vl53lx_p_005() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_hist_info_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_005) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_005) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_hist_info_t),
                 "::",
-                stringify!(VL53LX_p_005)
+                stringify!(vl53lx_p_005)
             )
         );
     }
-    test_field_VL53LX_p_005();
+    test_field_vl53lx_p_005();
     fn test_field_total_periods_elapsed() {
         assert_eq!(
             unsafe {
@@ -19359,7 +19122,7 @@ fn bindgen_test_layout_VL53LX_zone_hist_info_t() {
 struct VL53LX_zone_histograms_t {
     max_zones: u8,
     active_zones: u8,
-    VL53LX_p_003: [VL53LX_zone_hist_info_t; 16usize],
+    vl53lx_p_003: [VL53LX_zone_hist_info_t; 16usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_zone_histograms_t() {
@@ -19407,23 +19170,23 @@ fn bindgen_test_layout_VL53LX_zone_histograms_t() {
         );
     }
     test_field_active_zones();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_histograms_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             4usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_histograms_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -19431,8 +19194,8 @@ struct VL53LX_zone_calibration_data_t {
     no_of_samples: u32,
     effective_spads: u32,
     peak_rate_mcps: u32,
-    VL53LX_p_011: u32,
-    VL53LX_p_002: u32,
+    vl53lx_p_011: u32,
+    vl53lx_p_002: u32,
     median_range_mm: i32,
     range_mm_offset: i32,
 }
@@ -19499,40 +19262,40 @@ fn bindgen_test_layout_VL53LX_zone_calibration_data_t() {
         );
     }
     test_field_peak_rate_mcps();
-    fn test_field_VL53LX_p_011() {
+    fn test_field_vl53lx_p_011() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_calibration_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_011) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_011) as usize - ptr as usize
             },
             12usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_calibration_data_t),
                 "::",
-                stringify!(VL53LX_p_011)
+                stringify!(vl53lx_p_011)
             )
         );
     }
-    test_field_VL53LX_p_011();
-    fn test_field_VL53LX_p_002() {
+    test_field_vl53lx_p_011();
+    fn test_field_vl53lx_p_002() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_calibration_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_002) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_002) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_calibration_data_t),
                 "::",
-                stringify!(VL53LX_p_002)
+                stringify!(vl53lx_p_002)
             )
         );
     }
-    test_field_VL53LX_p_002();
+    test_field_vl53lx_p_002();
     fn test_field_median_range_mm() {
         assert_eq!(
             unsafe {
@@ -19572,8 +19335,8 @@ fn bindgen_test_layout_VL53LX_zone_calibration_data_t() {
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_zone_calibration_results_t {
     struct_version: u32,
-    preset_mode: VL53LX_DevicePresetModes,
-    zone_preset: VL53LX_DeviceZonePreset,
+    preset_mode: Vl53lxDevicePresetModes,
+    zone_preset: Vl53lxDeviceZonePreset,
     cal_distance_mm: i16,
     cal_reflectance_pc: u16,
     phasecal_result__reference_phase: u16,
@@ -19581,7 +19344,7 @@ struct VL53LX_zone_calibration_results_t {
     cal_status: VL53LX_Error,
     max_zones: u8,
     active_zones: u8,
-    VL53LX_p_003: [VL53LX_zone_calibration_data_t; 16usize],
+    vl53lx_p_003: [VL53LX_zone_calibration_data_t; 16usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_zone_calibration_results_t() {
@@ -19769,23 +19532,23 @@ fn bindgen_test_layout_VL53LX_zone_calibration_results_t() {
         );
     }
     test_field_active_zones();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_calibration_results_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             20usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_calibration_results_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -20081,7 +19844,7 @@ fn bindgen_test_layout_VL53LX_zone_private_dyn_cfg_t() {
 struct VL53LX_zone_private_dyn_cfgs_t {
     max_zones: u8,
     active_zones: u8,
-    VL53LX_p_003: [VL53LX_zone_private_dyn_cfg_t; 16usize],
+    vl53lx_p_003: [VL53LX_zone_private_dyn_cfg_t; 16usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_zone_private_dyn_cfgs_t() {
@@ -20129,23 +19892,23 @@ fn bindgen_test_layout_VL53LX_zone_private_dyn_cfgs_t() {
         );
     }
     test_field_active_zones();
-    fn test_field_VL53LX_p_003() {
+    fn test_field_vl53lx_p_003() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_zone_private_dyn_cfgs_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_003) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_003) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_zone_private_dyn_cfgs_t),
                 "::",
-                stringify!(VL53LX_p_003)
+                stringify!(vl53lx_p_003)
             )
         );
     }
-    test_field_VL53LX_p_003();
+    test_field_vl53lx_p_003();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -20269,8 +20032,8 @@ struct VL53LX_hist_xtalk_extract_data_t {
     target_width_phase: i32,
     effective_width: i32,
     event_scaler: i32,
-    VL53LX_p_012: u8,
-    VL53LX_p_013: u8,
+    vl53lx_p_012: u8,
+    vl53lx_p_013: u8,
     target_start: u8,
     max_shape_value: i32,
     bin_data_sums: [i32; 12usize],
@@ -20596,40 +20359,40 @@ fn bindgen_test_layout_VL53LX_hist_xtalk_extract_data_t() {
         );
     }
     test_field_event_scaler();
-    fn test_field_VL53LX_p_012() {
+    fn test_field_vl53lx_p_012() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_xtalk_extract_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_012) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_012) as usize - ptr as usize
             },
             72usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_xtalk_extract_data_t),
                 "::",
-                stringify!(VL53LX_p_012)
+                stringify!(vl53lx_p_012)
             )
         );
     }
-    test_field_VL53LX_p_012();
-    fn test_field_VL53LX_p_013() {
+    test_field_vl53lx_p_012();
+    fn test_field_vl53lx_p_013() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_hist_xtalk_extract_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_013) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_013) as usize - ptr as usize
             },
             73usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_hist_xtalk_extract_data_t),
                 "::",
-                stringify!(VL53LX_p_013)
+                stringify!(vl53lx_p_013)
             )
         );
     }
-    test_field_VL53LX_p_013();
+    test_field_vl53lx_p_013();
     fn test_field_target_start() {
         assert_eq!(
             unsafe {
@@ -20738,14 +20501,14 @@ fn bindgen_test_layout_VL53LX_gain_calibration_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_ll_driver_state_t {
-    cfg_device_state: VL53LX_DeviceState,
+    cfg_device_state: Vl53lxDeviceState,
     cfg_stream_count: u8,
     cfg_internal_stream_count: u8,
     cfg_internal_stream_count_val: u8,
     cfg_gph_id: u8,
     cfg_timing_status: u8,
     cfg_zone_id: u8,
-    rd_device_state: VL53LX_DeviceState,
+    rd_device_state: Vl53lxDeviceState,
     rd_stream_count: u8,
     rd_internal_stream_count: u8,
     rd_internal_stream_count_val: u8,
@@ -21008,9 +20771,9 @@ fn bindgen_test_layout_VL53LX_ll_driver_state_t() {
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_LLDriverData_t {
     wait_method: u8,
-    preset_mode: VL53LX_DevicePresetModes,
-    zone_preset: VL53LX_DeviceZonePreset,
-    measurement_mode: VL53LX_DeviceMeasurementModes,
+    preset_mode: Vl53lxDevicePresetModes,
+    zone_preset: Vl53lxDeviceZonePreset,
+    measurement_mode: Vl53lxDeviceMeasurementModes,
     offset_calibration_mode: VL53LX_OffsetCalibrationMode,
     offset_correction_mode: VL53LX_OffsetCorrectionMode,
     dmax_mode: VL53LX_DeviceDmaxMode,
@@ -21044,7 +20807,7 @@ struct VL53LX_LLDriverData_t {
     xtalk_cfg: VL53LX_xtalk_config_t,
     offsetcal_cfg: VL53LX_offsetcal_config_t,
     zonecal_cfg: VL53LX_zonecal_config_t,
-    stat_nvm: VL53LX_static_nvm_managed_t,
+    stat_nvm: Vl53lxStaticNvmManaged,
     hist_cfg: VL53LX_histogram_config_t,
     stat_cfg: VL53LX_static_config_t,
     gen_cfg: VL53LX_general_config_t,
@@ -25506,7 +25269,7 @@ fn bindgen_test_layout_VL53LX_dmax_reflectance_array_t() {
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_spad_rate_data_t {
     spad_type: u8,
-    VL53LX_p_020: u16,
+    vl53lx_p_020: u16,
     rate_data: [u16; 256usize],
     no_of_values: u16,
     fractional_bits: u8,
@@ -25541,23 +25304,23 @@ fn bindgen_test_layout_VL53LX_spad_rate_data_t() {
         );
     }
     test_field_spad_type();
-    fn test_field_VL53LX_p_020() {
+    fn test_field_vl53lx_p_020() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_spad_rate_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_020) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_020) as usize - ptr as usize
             },
             2usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_spad_rate_data_t),
                 "::",
-                stringify!(VL53LX_p_020)
+                stringify!(vl53lx_p_020)
             )
         );
     }
-    test_field_VL53LX_p_020();
+    test_field_vl53lx_p_020();
     fn test_field_rate_data() {
         assert_eq!(
             unsafe {
@@ -25630,9 +25393,9 @@ fn bindgen_test_layout_VL53LX_spad_rate_data_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_additional_data_t {
-    preset_mode: VL53LX_DevicePresetModes,
-    zone_preset: VL53LX_DeviceZonePreset,
-    measurement_mode: VL53LX_DeviceMeasurementModes,
+    preset_mode: Vl53lxDevicePresetModes,
+    zone_preset: Vl53lxDeviceZonePreset,
+    measurement_mode: Vl53lxDeviceMeasurementModes,
     offset_calibration_mode: VL53LX_OffsetCalibrationMode,
     offset_correction_mode: VL53LX_OffsetCorrectionMode,
     dmax_mode: VL53LX_DeviceDmaxMode,
@@ -25641,7 +25404,7 @@ struct VL53LX_additional_data_t {
     range_config_timeout_us: u32,
     inter_measurement_period_ms: u32,
     dss_config__target_total_rate_mcps: u16,
-    VL53LX_p_006: VL53LX_histogram_bin_data_t,
+    vl53lx_p_006: VL53LX_histogram_bin_data_t,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_additional_data_t() {
@@ -25843,36 +25606,36 @@ fn bindgen_test_layout_VL53LX_additional_data_t() {
         );
     }
     test_field_dss_config__target_total_rate_mcps();
-    fn test_field_VL53LX_p_006() {
+    fn test_field_vl53lx_p_006() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_additional_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_006) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_006) as usize - ptr as usize
             },
             28usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_additional_data_t),
                 "::",
-                stringify!(VL53LX_p_006)
+                stringify!(vl53lx_p_006)
             )
         );
     }
-    test_field_VL53LX_p_006();
+    test_field_vl53lx_p_006();
 }
 #[doc = " @brief Defines the parameters of the Get Version Functions"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_Version_t {
     #[doc = "< revision number"]
-    revision: u32,
+    pub revision: u32,
     #[doc = "< major number"]
-    major: u8,
+    pub major: u8,
     #[doc = "< minor number"]
-    minor: u8,
+    pub minor: u8,
     #[doc = "< build number"]
-    build: u8,
+    pub build: u8,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_Version_t() {
@@ -25958,7 +25721,7 @@ fn bindgen_test_layout_VL53LX_Version_t() {
 #[doc = " @brief Defines the parameters of the Get Device Info Functions"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct VL53LX_DeviceInfo_t {
+pub struct VL53LX_DeviceInfo_t {
     ProductType: u8,
     ProductRevisionMajor: u8,
     ProductRevisionMinor: u8,
@@ -26952,13 +26715,13 @@ fn bindgen_test_layout_VL53LX_DevData_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 struct VL53LX_xtalk_algo_data_t {
-    VL53LX_p_061: [u32; 4usize],
-    VL53LX_p_059: i16,
-    VL53LX_p_060: i16,
-    VL53LX_p_056: VL53LX_histogram_bin_data_t,
-    VL53LX_p_057: VL53LX_histogram_bin_data_t,
-    VL53LX_p_058: u32,
-    VL53LX_p_062: [u32; 12usize],
+    vl53lx_p_061: [u32; 4usize],
+    vl53lx_p_059: i16,
+    vl53lx_p_060: i16,
+    vl53lx_p_056: VL53LX_histogram_bin_data_t,
+    vl53lx_p_057: VL53LX_histogram_bin_data_t,
+    vl53lx_p_058: u32,
+    vl53lx_p_062: [u32; 12usize],
 }
 #[test]
 fn bindgen_test_layout_VL53LX_xtalk_algo_data_t() {
@@ -26972,125 +26735,125 @@ fn bindgen_test_layout_VL53LX_xtalk_algo_data_t() {
         4usize,
         concat!("Alignment of ", stringify!(VL53LX_xtalk_algo_data_t))
     );
-    fn test_field_VL53LX_p_061() {
+    fn test_field_vl53lx_p_061() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_061) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_061) as usize - ptr as usize
             },
             0usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_061)
+                stringify!(vl53lx_p_061)
             )
         );
     }
-    test_field_VL53LX_p_061();
-    fn test_field_VL53LX_p_059() {
+    test_field_vl53lx_p_061();
+    fn test_field_vl53lx_p_059() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_059) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_059) as usize - ptr as usize
             },
             16usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_059)
+                stringify!(vl53lx_p_059)
             )
         );
     }
-    test_field_VL53LX_p_059();
-    fn test_field_VL53LX_p_060() {
+    test_field_vl53lx_p_059();
+    fn test_field_vl53lx_p_060() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_060) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_060) as usize - ptr as usize
             },
             18usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_060)
+                stringify!(vl53lx_p_060)
             )
         );
     }
-    test_field_VL53LX_p_060();
-    fn test_field_VL53LX_p_056() {
+    test_field_vl53lx_p_060();
+    fn test_field_vl53lx_p_056() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_056) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_056) as usize - ptr as usize
             },
             20usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_056)
+                stringify!(vl53lx_p_056)
             )
         );
     }
-    test_field_VL53LX_p_056();
-    fn test_field_VL53LX_p_057() {
+    test_field_vl53lx_p_056();
+    fn test_field_vl53lx_p_057() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_057) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_057) as usize - ptr as usize
             },
             192usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_057)
+                stringify!(vl53lx_p_057)
             )
         );
     }
-    test_field_VL53LX_p_057();
-    fn test_field_VL53LX_p_058() {
+    test_field_vl53lx_p_057();
+    fn test_field_vl53lx_p_058() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_058) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_058) as usize - ptr as usize
             },
             364usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_058)
+                stringify!(vl53lx_p_058)
             )
         );
     }
-    test_field_VL53LX_p_058();
-    fn test_field_VL53LX_p_062() {
+    test_field_vl53lx_p_058();
+    fn test_field_vl53lx_p_062() {
         assert_eq!(
             unsafe {
                 let uninit = ::std::mem::MaybeUninit::<VL53LX_xtalk_algo_data_t>::uninit();
                 let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).VL53LX_p_062) as usize - ptr as usize
+                ::std::ptr::addr_of!((*ptr).vl53lx_p_062) as usize - ptr as usize
             },
             368usize,
             concat!(
                 "Offset of field: ",
                 stringify!(VL53LX_xtalk_algo_data_t),
                 "::",
-                stringify!(VL53LX_p_062)
+                stringify!(vl53lx_p_062)
             )
         );
     }
-    test_field_VL53LX_p_062();
+    test_field_vl53lx_p_062();
 }
 type byte = u8;
 #[repr(C)]
@@ -27129,7 +26892,7 @@ struct VL53LX_Dev_t {
     RangeStatus: u8,
     SignalRateRtnMegaCps: FixPoint1616_t,
     #[doc = "< Device State"]
-    device_state: VL53LX_DeviceState,
+    device_state: Vl53lxDeviceState,
 }
 #[test]
 fn bindgen_test_layout_VL53LX_Dev_t() {
@@ -29607,4657 +29370,54 @@ fn bindgen_test_layout_VL53LX_decoded_nvm_data_t() {
     }
     test_field_ews_info();
 }
+
+pub type Vl53LxResult<T> = Result<T,VL53LX_Error>;
+
 #[doc = " Class representing a VL53LX sensor component"]
 #[repr(C)]
 #[derive(Debug)]
-struct VL53LX {
-    _base: RangeSensor,
+struct VL53LX<I2C> where I2C: Read + Write + WriteRead {
     BDTable: [i32; 11usize],
-    dev_i2c: *mut TwoWire,
+    dev_i2c: I2C,
     gpio0: ::std::os::raw::c_int,
-    MyDevice: VL53LX_Dev_t,
-    Dev: VL53LX_DEV,
+    Dev: VL53LX_Dev_t,
 }
-#[test]
-fn bindgen_test_layout_VL53LX() {
-    assert_eq!(
-        ::std::mem::size_of::<VL53LX>(),
-        10856usize,
-        concat!("Size of: ", stringify!(VL53LX))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<VL53LX>(),
-        8usize,
-        concat!("Alignment of ", stringify!(VL53LX))
-    );
-    fn test_field_BDTable() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).BDTable) as usize - ptr as usize
-            },
-            8usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX),
-                "::",
-                stringify!(BDTable)
-            )
-        );
+
+pub struct Vl53LxProductRevision {
+    pub major: u8,
+    pub minor: u8,
+}
+
+impl<I2C> VL53LX<I2C> where I2C: Read + Write + WriteRead {
+    pub fn VL53LX_GetVersion(&self) -> Vl53LxResult<VL53LX_Version_t> {
+        Ok(VL53LX_Version_t { revision: VL53LX_IMPLEMENTATION_VER_REVISION, major: VL53LX_IMPLEMENTATION_VER_MAJOR, minor: VL53LX_IMPLEMENTATION_VER_MINOR, build: VL53LX_IMPLEMENTATION_VER_SUB })
     }
-    test_field_BDTable();
-    fn test_field_dev_i2c() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).dev_i2c) as usize - ptr as usize
-            },
-            56usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX),
-                "::",
-                stringify!(dev_i2c)
-            )
-        );
+    
+    pub fn VL53LX_GetProductRevision(
+        &self
+    ) -> Vl53LxResult<Vl53LxProductRevision> {
+        let revision_id = self.Dev.Data.LLData.nvm_copy_data.identification__revision_id;
+        Ok(Vl53LxProductRevision { major: 1, minor: (revision_id & 0xF0) >> 4 })
     }
-    test_field_dev_i2c();
-    fn test_field_gpio0() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).gpio0) as usize - ptr as usize
-            },
-            64usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX),
-                "::",
-                stringify!(gpio0)
-            )
-        );
+
+    pub fn VL53LX_GetDeviceInfo(
+        &self
+    ) -> Vl53LxResult<VL53LX_DeviceInfo_t> {
+        let pLLData =  &self.Dev.Data.LLData;
+        let revision_id = pLLData.nvm_copy_data.identification__revision_id;
+
+        Ok(VL53LX_DeviceInfo_t {
+            ProductType: pLLData.nvm_copy_data.identification__module_type,
+            ProductRevisionMajor: i,
+            ProductRevisionMinor: (revision_id & 0xF0) >> 4
+        })
     }
-    test_field_gpio0();
-    fn test_field_MyDevice() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).MyDevice) as usize - ptr as usize
-            },
-            72usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX),
-                "::",
-                stringify!(MyDevice)
-            )
-        );
-    }
-    test_field_MyDevice();
-    fn test_field_Dev() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::std::mem::MaybeUninit::<VL53LX>::uninit();
-                let ptr = uninit.as_ptr();
-                ::std::ptr::addr_of!((*ptr).Dev) as usize - ptr as usize
-            },
-            10848usize,
-            concat!(
-                "Offset of field: ",
-                stringify!(VL53LX),
-                "::",
-                stringify!(Dev)
-            )
-        );
-    }
-    test_field_Dev();
-}
-extern "C" {
-    #[doc = " @brief Return the VL53LX driver Version"]
-    #[doc = ""]
-    #[doc = " @note This function doesn't access to the device"]
-    #[doc = ""]
-    #[doc = " @param   pVersion              Rer to current driver Version"]
-    #[doc = " @return  VL53LX_Error_NONE     Success"]
-    #[doc = " @return  \"Other error code\"    See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_GetVersionEP16VL53LX_Version_t"]
-    fn VL53LX_VL53LX_GetVersion(
-        this: *mut VL53LX,
-        pVersion: *mut VL53LX_Version_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Reads the Product Revision for a for given Device"]
-    #[doc = " This function can be used to distinguish cut1.0 from cut1.1."]
-    #[doc = ""]
-    #[doc = " @param   Dev                 Device Handle"]
-    #[doc = " @param   pProductRevisionMajor  Pointer to Product Revision Major"]
-    #[doc = " for a given Device"]
-    #[doc = " @param   pProductRevisionMinor  Pointer to Product Revision Minor"]
-    #[doc = " for a given Device"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"    See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_GetProductRevisionEPhS0_"]
-    fn VL53LX_VL53LX_GetProductRevision(
-        this: *mut VL53LX,
-        pProductRevisionMajor: *mut u8,
-        pProductRevisionMinor: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Reads the Device information for given Device"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                 Device Handle"]
-    #[doc = " @param   pVL53LX_DeviceInfo  Pointer to current device info for a given"]
-    #[doc = "  Device"]
-    #[doc = " @return  VL53LX_Error_NONE   Success"]
-    #[doc = " @return  \"Other error code\"  See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_GetDeviceInfoEP19VL53LX_DeviceInfo_t"]
-    fn VL53LX_VL53LX_GetDeviceInfo(
-        this: *mut VL53LX,
-        pVL53LX_DeviceInfo: *mut VL53LX_DeviceInfo_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Reads the Device unique identifier"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                 Device Handle"]
-    #[doc = " @param   pUid                Pointer to current device unique ID"]
-    #[doc = " @return  VL53LX_Error_NONE   Success"]
-    #[doc = " @return  \"Other error code\"  See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_GetUIDEPm"]
-    fn VL53LX_VL53LX_GetUID(this: *mut VL53LX, pUid: *mut u64) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Set new device address"]
-    #[doc = ""]
-    #[doc = " After completion the device will answer to the new address programmed."]
-    #[doc = " This function should be called when several devices are used in parallel"]
-    #[doc = " before start programming the sensor."]
-    #[doc = " When a single device us used, there is no need to call this function."]
-    #[doc = ""]
-    #[doc = " When it is requested for multi devices system this function MUST be called"]
-    #[doc = " prior to VL53LX_DataInit()"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                   Device Handle"]
-    #[doc = " @param   DeviceAddress         The new Device address"]
-    #[doc = " @return  VL53LX_Error_NONE     Success"]
-    #[doc = " @return  \"Other error code\"    See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_SetDeviceAddressEh"]
-    fn VL53LX_VL53LX_SetDeviceAddress(this: *mut VL53LX, DeviceAddress: u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief One time device initialization"]
-    #[doc = ""]
-    #[doc = " To be called after device has been powered on and booted"]
-    #[doc = " see @a VL53LX_WaitDeviceBooted()"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " When not used after a fresh device \"power up\", it may return"]
-    #[doc = " @a #VL53LX_Error_CALIBRATION_WARNING meaning wrong calibration data"]
-    #[doc = " may have been fetched from device that can result in ranging offset error\\n"]
-    #[doc = " If VL53LX_DataInit is called several times then the application must restore"]
-    #[doc = " calibration calling @a VL53LX_SetOffsetCalibrationData()"]
-    #[doc = " It implies application has gathered calibration data thanks to"]
-    #[doc = " @a VL53LX_GetOffsetCalibrationData() after an initial calibration stage."]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                   Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE     Success"]
-    #[doc = " @return  \"Other error code\"    See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX15VL53LX_DataInitEv"]
-    fn VL53LX_VL53LX_DataInit(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Wait for device booted after chip enable (hardware standby)"]
-    #[doc = ""]
-    #[doc = " @param   Dev                   Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE     Success"]
-    #[doc = " @return  \"Other error code\"    See ::VL53LX_Error"]
-    #[doc = ""]
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_WaitDeviceBootedEv"]
-    fn VL53LX_VL53LX_WaitDeviceBooted(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief  Set the distance mode"]
-    #[doc = " @par Function Description"]
-    #[doc = " Set the distance mode to be used for the next ranging.<br>"]
-    #[doc = " The modes Short, Medium and Long are used to optimize the ranging accuracy"]
-    #[doc = " in a specific range of distance.<br> The user select one of these modes to"]
-    #[doc = " select the distance range."]
-    #[doc = " @note This function doesn't Access to the device"]
-    #[doc = ""]
-    #[doc = " @warning This function should be called after @a VL53LX_DataInit()."]
-    #[doc = ""]
-    #[doc = " @param   Dev                   Device Handle"]
-    #[doc = " @param   DistanceMode          Distance mode to apply, valid values are:"]
-    #[doc = " @li VL53LX_DISTANCEMODE_SHORT"]
-    #[doc = " @li VL53LX_DISTANCEMODE_MEDIUM"]
-    #[doc = " @li VL53LX_DISTANCEMODE_LONG"]
-    #[doc = " @return  VL53LX_Error_NONE               Success"]
-    #[doc = " @return  VL53LX_Error_MODE_NOT_SUPPORTED This error occurs when DistanceMode"]
-    #[doc = "                                          is not in the supported list"]
-    #[doc = " @return  \"Other error code\"              See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_SetDistanceModeEh"]
-    fn VL53LX_VL53LX_SetDistanceMode(
-        this: *mut VL53LX,
-        DistanceMode: VL53LX_DistanceModes,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief  Get the distance mode"]
-    #[doc = " @par Function Description"]
-    #[doc = " Get the distance mode used for the next ranging."]
-    #[doc = ""]
-    #[doc = " @param   Dev                   Device Handle"]
-    #[doc = " @param   *pDistanceMode        Pointer to Distance mode"]
-    #[doc = " @return  VL53LX_Error_NONE            Success"]
-    #[doc = " @return  \"Other error code\"           See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_GetDistanceModeEPh"]
-    fn VL53LX_VL53LX_GetDistanceMode(
-        this: *mut VL53LX,
-        pDistanceMode: *mut VL53LX_DistanceModes,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Set Ranging Timing Budget in microseconds"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " Defines the maximum time allowed by the user to the device to run a"]
-    #[doc = " full ranging sequence for the current mode (ranging, histogram, ASL ...)"]
-    #[doc = ""]
-    #[doc = " @param   Dev                                Device Handle"]
-    #[doc = " @param MeasurementTimingBudgetMicroSeconds  Max measurement time in"]
-    #[doc = " microseconds."]
-    #[doc = " @return  VL53LX_Error_NONE            Success"]
-    #[doc = " @return  VL53LX_Error_INVALID_PARAMS  Error timing parameter not"]
-    #[doc = "                                       supported."]
-    #[doc = "                                       The maximum accepted value for the"]
-    #[doc = "                                       computed timing budget is 10 seconds"]
-    #[doc = "                                       the minimum value depends on the preset"]
-    #[doc = "                                       mode selected."]
-    #[doc = " @return  \"Other error code\"           See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_SetMeasurementTimingBudgetMicroSecondsEj"]
-    fn VL53LX_VL53LX_SetMeasurementTimingBudgetMicroSeconds(
-        this: *mut VL53LX,
-        MeasurementTimingBudgetMicroSeconds: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Get Ranging Timing Budget in microseconds"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " Returns the programmed the maximum time allowed by the user to the"]
-    #[doc = " device to run a full ranging sequence for the current mode"]
-    #[doc = " (ranging, histogram, ...)"]
-    #[doc = ""]
-    #[doc = " @param   Dev                                    Device Handle"]
-    #[doc = " @param   pMeasurementTimingBudgetMicroSeconds   Max measurement time in"]
-    #[doc = " microseconds."]
-    #[doc = " @return  VL53LX_Error_NONE            Success"]
-    #[doc = " @return  \"Other error code\"           See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_GetMeasurementTimingBudgetMicroSecondsEPj"]
-    fn VL53LX_VL53LX_GetMeasurementTimingBudgetMicroSeconds(
-        this: *mut VL53LX,
-        pMeasurementTimingBudgetMicroSeconds: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Start device measurement"]
-    #[doc = ""]
-    #[doc = " @details Started measurement will depend on distance parameter set through"]
-    #[doc = " @a VL53LX_SetDistanceMode()"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE                  Success"]
-    #[doc = " @return  VL53LX_Error_TIME_OUT    Time out on start measurement"]
-    #[doc = " @return  VL53LX_Error_INVALID_PARAMS This error might occur in timed mode"]
-    #[doc = " when inter measurement period is smaller or too close to the timing budget."]
-    #[doc = " In such case measurements are not started and user must correct the timings"]
-    #[doc = " passed to @a VL53LX_SetMeasurementTimingBudgetMicroSeconds() and"]
-    #[doc = " @a VL53LX_SetInterMeasurementPeriodMilliSeconds() functions."]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_StartMeasurementEv"]
-    fn VL53LX_VL53LX_StartMeasurement(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Stop device measurement"]
-    #[doc = ""]
-    #[doc = " @details Will set the device in standby mode at end of current measurement\\n"]
-    #[doc = "          Not necessary in single mode as device shall return automatically"]
-    #[doc = "          in standby mode at end of measurement."]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE    Success"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_StopMeasurementEv"]
-    fn VL53LX_VL53LX_StopMeasurement(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Clear the Interrupt flag and start new measurement"]
-    #[doc = " *"]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE    Success"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_ClearInterruptAndStartMeasurementEv"]
-    fn VL53LX_VL53LX_ClearInterruptAndStartMeasurement(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Return Measurement Data Ready"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " This function indicate that a measurement data is ready."]
-    #[doc = " This function is used for non-blocking capture."]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                    Device Handle"]
-    #[doc = " @param   pMeasurementDataReady  Pointer to Measurement Data Ready."]
-    #[doc = " 0 = data not ready, 1 = data ready"]
-    #[doc = " @return  VL53LX_Error_NONE      Success"]
-    #[doc = " @return  \"Other error code\"     See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_GetMeasurementDataReadyEPh"]
-    fn VL53LX_VL53LX_GetMeasurementDataReady(
-        this: *mut VL53LX,
-        pMeasurementDataReady: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Wait for measurement data ready."]
-    #[doc = " Blocking function."]
-    #[doc = " Note that the timeout is given by:"]
-    #[doc = " VL53LX_RANGE_COMPLETION_POLLING_TIMEOUT_MS defined in def.h"]
-    #[doc = ""]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev      Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  VL53LX_Error_TIME_OUT In case of timeout"]
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_WaitMeasurementDataReadyEv"]
-    fn VL53LX_VL53LX_WaitMeasurementDataReady(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Retrieve all measurements from device with the current setup"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " Get data from last successful Ranging measurement"]
-    #[doc = ""]
-    #[doc = " @warning USER must call @a VL53LX_ClearInterruptAndStartMeasurement() prior"]
-    #[doc = " to call again this function"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @note The first valid value returned by this function will have a range"]
-    #[doc = " status equal to VL53LX_RANGESTATUS_RANGE_VALID_NO_WRAP_CHECK which means that"]
-    #[doc = " the data is valid but no wrap around check have been done. User should take"]
-    #[doc = " care about that."]
-    #[doc = ""]
-    #[doc = " @param   Dev                      Device Handle"]
-    #[doc = " @param   pMultiRangingData        Pointer to the data structure to fill up."]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_GetMultiRangingDataEP25VL53LX_MultiRangingData_t"]
-    fn VL53LX_VL53LX_GetMultiRangingData(
-        this: *mut VL53LX,
-        pMultiRangingData: *mut VL53LX_MultiRangingData_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Set Tuning Parameter value for a given parameter ID"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " This function is used to improve the performance of the device. It permit to"]
-    #[doc = " change a particular value used for a timeout or a threshold or a constant"]
-    #[doc = " in an algorithm. The function will change the value of the parameter"]
-    #[doc = " identified by an unique ID."]
-    #[doc = ""]
-    #[doc = " @note This function doesn't Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                          Device Handle"]
-    #[doc = " @param   TuningParameterId            Tuning Parameter ID"]
-    #[doc = " @param   TuningParameterValue         Tuning Parameter Value"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_SetTuningParameterEti"]
-    fn VL53LX_VL53LX_SetTuningParameter(
-        this: *mut VL53LX,
-        TuningParameterId: u16,
-        TuningParameterValue: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Get Tuning Parameter value for a given parameter ID"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " This function is used to get the value of the parameter"]
-    #[doc = " identified by an unique ID."]
-    #[doc = ""]
-    #[doc = " @note This function doesn't Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                          Device Handle"]
-    #[doc = " @param   TuningParameterId            Tuning Parameter ID"]
-    #[doc = " @param   pTuningParameterValue        Pointer to Tuning Parameter Value"]
-    #[doc = " for a given TuningParameterId."]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_GetTuningParameterEtPi"]
-    fn VL53LX_VL53LX_GetTuningParameter(
-        this: *mut VL53LX,
-        TuningParameterId: u16,
-        pTuningParameterValue: *mut i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Performs Reference Spad Management"]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " The reference SPAD initialization procedure determines the minimum amount"]
-    #[doc = " of reference spads to be enables to achieve a target reference signal rate"]
-    #[doc = " and should be performed once during initialization."]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                          Device Handle"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_PerformRefSpadManagementEv"]
-    fn VL53LX_VL53LX_PerformRefSpadManagement(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Enable/Disable dynamic Xtalk compensation feature"]
-    #[doc = ""]
-    #[doc = " Enable/Disable dynamic Xtalk compensation (aka smudge correction)."]
-    #[doc = ""]
-    #[doc = " @param   Dev    Device Handle"]
-    #[doc = " @param   Mode   Set the smudge correction mode"]
-    #[doc = " See ::VL53LX_SmudgeCorrectionModes"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_SmudgeCorrectionEnableEh"]
-    fn VL53LX_VL53LX_SmudgeCorrectionEnable(
-        this: *mut VL53LX,
-        Mode: VL53LX_SmudgeCorrectionModes,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Enable/Disable Cross talk compensation feature"]
-    #[doc = ""]
-    #[doc = " Enable/Disable Cross Talk correction."]
-    #[doc = ""]
-    #[doc = " @param   Dev                       Device Handle"]
-    #[doc = " @param   XTalkCompensationEnable   Cross talk compensation"]
-    #[doc = "  to be set 0 = disabled or 1 = enabled."]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_SetXTalkCompensationEnableEh"]
-    fn VL53LX_VL53LX_SetXTalkCompensationEnable(
-        this: *mut VL53LX,
-        XTalkCompensationEnable: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Get Cross talk compensation rate enable"]
-    #[doc = ""]
-    #[doc = " Get if the Cross Talk is Enabled or Disabled."]
-    #[doc = ""]
-    #[doc = " @note This function doesn't access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                        Device Handle"]
-    #[doc = " @param   pXTalkCompensationEnable   Pointer to the Cross talk compensation"]
-    #[doc = "  state 0=disabled or 1 = enabled"]
-    #[doc = " @return  VL53LX_Error_NONE        Success"]
-    #[doc = " @return  \"Other error code\"       See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_GetXTalkCompensationEnableEPh"]
-    fn VL53LX_VL53LX_GetXTalkCompensationEnable(
-        this: *mut VL53LX,
-        pXTalkCompensationEnable: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Perform XTalk Calibration"]
-    #[doc = ""]
-    #[doc = " @details Perform a XTalk calibration of the Device."]
-    #[doc = " This function will launch a  measurement, if interrupts"]
-    #[doc = " are enabled an interrupt will be done."]
-    #[doc = " This function will clear the interrupt generated automatically."]
-    #[doc = " This function will program a new value for the XTalk compensation"]
-    #[doc = " and it will enable the cross talk before exit."]
-    #[doc = ""]
-    #[doc = " @warning This function is a blocking function"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " the calibration sets appropriate"]
-    #[doc = " distance mode and thus override existing one<br>"]
-    #[doc = " The calibration uses a target which should be located at least @60cm from the"]
-    #[doc = " device. The actual location of the target shall be passed"]
-    #[doc = " through the bare driver tuning parameters table"]
-    #[doc = ""]
-    #[doc = " @return  VL53LX_Error_NONE    Success"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_PerformXTalkCalibrationEv"]
-    fn VL53LX_VL53LX_PerformXTalkCalibration(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Define the mode to be used for the offset correction"]
-    #[doc = ""]
-    #[doc = " Define the mode to be used for the offset correction."]
-    #[doc = ""]
-    #[doc = " @param   Dev                       Device Handle"]
-    #[doc = " @param   OffsetCorrectionMode      Offset Correction Mode valid values are:"]
-    #[doc = " @li                                VL53LX_OFFSETCORRECTIONMODE_STANDARD"]
-    #[doc = " @li                                VL53LX_OFFSETCORRECTIONMODE_PERVCSEL"]
-    #[doc = ""]
-    #[doc = " @return  VL53LX_Error_NONE         Success"]
-    #[doc = " @return  \"Other error code\"        See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_SetOffsetCorrectionModeEh"]
-    fn VL53LX_VL53LX_SetOffsetCorrectionMode(
-        this: *mut VL53LX,
-        OffsetCorrectionMode: VL53LX_OffsetCorrectionModes,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Perform Offset simple Calibration"]
-    #[doc = ""]
-    #[doc = " @details Perform a very simple offset calibration of the Device."]
-    #[doc = " This function will launch few ranging measurements and computes offset"]
-    #[doc = " calibration. The preset mode and the distance mode MUST be set by the"]
-    #[doc = " application before to call this function."]
-    #[doc = ""]
-    #[doc = " @warning This function is a blocking function"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " @param   CalDistanceMilliMeter     Calibration distance value used for the"]
-    #[doc = " offset compensation."]
-    #[doc = ""]
-    #[doc = " @return  VL53LX_Error_NONE"]
-    #[doc = " @return  VL53LX_Error_OFFSET_CAL_NO_SAMPLE_FAIL the calibration failed by"]
-    #[doc = " lack of valid measurements"]
-    #[doc = " @return  VL53LX_WARNING_OFFSET_CAL_SIGMA_TOO_HIGH means that the target"]
-    #[doc = " distance combined to the number of loops performed in the calibration lead to"]
-    #[doc = " an internal overflow. Try to reduce the distance of the target (140 mm)"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_PerformOffsetSimpleCalibrationEi"]
-    fn VL53LX_VL53LX_PerformOffsetSimpleCalibration(
-        this: *mut VL53LX,
-        CalDistanceMilliMeter: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Perform Offset simple Calibration with a \"zero distance\" target"]
-    #[doc = ""]
-    #[doc = " @details Perform a simple offset calibration of the Device."]
-    #[doc = " This function will launch few ranging measurements and computes offset"]
-    #[doc = " calibration. The preset mode and the distance mode MUST be set by the"]
-    #[doc = " application before to call this function."]
-    #[doc = " A target must be place very close to the device."]
-    #[doc = " Ideally the target shall be touching the coverglass."]
-    #[doc = ""]
-    #[doc = " @warning This function is a blocking function"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = ""]
-    #[doc = " @return  VL53LX_Error_NONE"]
-    #[doc = " @return  VL53LX_Error_OFFSET_CAL_NO_SAMPLE_FAIL the calibration failed by"]
-    #[doc = " lack of valid measurements"]
-    #[doc = " @return  VL53LX_WARNING_OFFSET_CAL_SIGMA_TOO_HIGH means that the target"]
-    #[doc = " distance is too large, try to put the target closer to the device"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_PerformOffsetZeroDistanceCalibrationEv"]
-    fn VL53LX_VL53LX_PerformOffsetZeroDistanceCalibration(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Perform Offset per Vcsel Calibration. i.e. per distance mode"]
-    #[doc = ""]
-    #[doc = " @details Perform offset calibration of the Device depending on the"]
-    #[doc = " three distance mode settings: short, medium and long."]
-    #[doc = " This function will launch few ranging measurements and computes offset"]
-    #[doc = " calibration in each of the three distance modes."]
-    #[doc = " The preset mode MUST be set by the application before to call this function."]
-    #[doc = ""]
-    #[doc = " @warning This function is a blocking function"]
-    #[doc = ""]
-    #[doc = " @note This function Access to the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                  Device Handle"]
-    #[doc = " @param   CalDistanceMilliMeter     Distance of the target used for the"]
-    #[doc = " offset compensation calibration."]
-    #[doc = ""]
-    #[doc = " @return  VL53LX_Error_NONE"]
-    #[doc = " @return  VL53LX_Error_OFFSET_CAL_NO_SAMPLE_FAIL the calibration failed by"]
-    #[doc = " lack of valid measurements"]
-    #[doc = " @return  VL53LX_WARNING_OFFSET_CAL_SIGMA_TOO_HIGH means that the target"]
-    #[doc = " distance combined to the number of loops performed in the calibration lead to"]
-    #[doc = " an internal overflow. Try to reduce the distance of the target (140 mm)"]
-    #[doc = " @return  \"Other error code\"   See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_PerformOffsetPerVcselCalibrationEi"]
-    fn VL53LX_VL53LX_PerformOffsetPerVcselCalibration(
-        this: *mut VL53LX,
-        CalDistanceMilliMeter: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Sets the Calibration Data."]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " This function set all the Calibration Data issued from the functions"]
-    #[doc = " @a VL53LX_PerformRefSpadManagement(), @a VL53LX_PerformXTalkCalibration,"]
-    #[doc = " @a VL53LX_PerformOffsetCalibration()"]
-    #[doc = ""]
-    #[doc = " @note This function doesn't Accesses the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                          Device Handle"]
-    #[doc = " @param   *pCalibrationData            Pointer to Calibration data to be set."]
-    #[doc = " @return  VL53LX_Error_NONE            Success"]
-    #[doc = " @return  VL53LX_Error_INVALID_PARAMS  pCalibrationData points to an older"]
-    #[doc = " version of the inner structure. Need for support to convert its content."]
-    #[doc = " @return  \"Other error code\"           See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_SetCalibrationDataEP24VL53LX_CalibrationData_t"]
-    fn VL53LX_VL53LX_SetCalibrationData(
-        this: *mut VL53LX,
-        pCalibrationData: *mut VL53LX_CalibrationData_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @brief Gets the Calibration Data."]
-    #[doc = ""]
-    #[doc = " @par Function Description"]
-    #[doc = " This function get all the Calibration Data issued from the functions"]
-    #[doc = " @a VL53LX_PerformRefSpadManagement(), @a VL53LX_PerformXTalkCalibration,"]
-    #[doc = " @a VL53LX_PerformOffsetCalibration()"]
-    #[doc = ""]
-    #[doc = " @note This function doesn't Accesses the device"]
-    #[doc = ""]
-    #[doc = " @param   Dev                          Device Handle"]
-    #[doc = " @param   *pCalibrationData            pointer where to store Calibration"]
-    #[doc = "  data."]
-    #[doc = " @return  VL53LX_Error_NONE            Success"]
-    #[doc = " @return  \"Other error code\"           See ::VL53LX_Error"]
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_GetCalibrationDataEP24VL53LX_CalibrationData_t"]
-    fn VL53LX_VL53LX_GetCalibrationData(
-        this: *mut VL53LX,
-        pCalibrationData: *mut VL53LX_CalibrationData_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[doc = " @} VL53LX_group"]
-    #[link_name = "\u{1}_ZN6VL53LX18VL53LX_get_versionEP19VL53LX_ll_version_t"]
-    fn VL53LX_VL53LX_get_version(
-        this: *mut VL53LX,
-        pversion: *mut VL53LX_ll_version_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_get_device_firmware_versionEPt"]
-    fn VL53LX_VL53LX_get_device_firmware_version(
-        this: *mut VL53LX,
-        pfw_version: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX16VL53LX_data_initEh"]
-    fn VL53LX_VL53LX_data_init(this: *mut VL53LX, read_p2p_data: u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_read_p2p_dataEv"]
-    fn VL53LX_VL53LX_read_p2p_data(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_software_resetEv"]
-    fn VL53LX_VL53LX_software_reset(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_set_part_to_part_dataEP25VL53LX_calibration_data_t"]
-    fn VL53LX_VL53LX_set_part_to_part_data(
-        this: *mut VL53LX,
-        pcal_data: *mut VL53LX_calibration_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_get_part_to_part_dataEP25VL53LX_calibration_data_t"]
-    fn VL53LX_VL53LX_get_part_to_part_data(
-        this: *mut VL53LX,
-        pcal_data: *mut VL53LX_calibration_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_get_tuning_debug_dataEP26VL53LX_tuning_parameters_t"]
-    fn VL53LX_VL53LX_get_tuning_debug_data(
-        this: *mut VL53LX,
-        ptun_data: *mut VL53LX_tuning_parameters_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_set_inter_measurement_period_msEj"]
-    fn VL53LX_VL53LX_set_inter_measurement_period_ms(
-        this: *mut VL53LX,
-        inter_measurement_period_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_get_inter_measurement_period_msEPj"]
-    fn VL53LX_VL53LX_get_inter_measurement_period_ms(
-        this: *mut VL53LX,
-        pinter_measurement_period_ms: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_timeouts_usEjjj"]
-    fn VL53LX_VL53LX_set_timeouts_us(
-        this: *mut VL53LX,
-        phasecal_config_timeout_us: u32,
-        mm_config_timeout_us: u32,
-        range_config_timeout_us: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_get_timeouts_usEPjS0_S0_"]
-    fn VL53LX_VL53LX_get_timeouts_us(
-        this: *mut VL53LX,
-        pphasecal_config_timeout_us: *mut u32,
-        pmm_config_timeout_us: *mut u32,
-        prange_config_timeout_us: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_set_calibration_repeat_periodEt"]
-    fn VL53LX_VL53LX_set_calibration_repeat_period(
-        this: *mut VL53LX,
-        cal_config__repeat_period: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_get_calibration_repeat_periodEPt"]
-    fn VL53LX_VL53LX_get_calibration_repeat_period(
-        this: *mut VL53LX,
-        pcal_config__repeat_period: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_sequence_config_bitEhh"]
-    fn VL53LX_VL53LX_set_sequence_config_bit(
-        this: *mut VL53LX,
-        bit_id: VL53LX_DeviceSequenceConfig,
-        value: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_sequence_config_bitEhPh"]
-    fn VL53LX_VL53LX_get_sequence_config_bit(
-        this: *mut VL53LX,
-        bit_id: VL53LX_DeviceSequenceConfig,
-        pvalue: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_set_interrupt_polarityEh"]
-    fn VL53LX_VL53LX_set_interrupt_polarity(
-        this: *mut VL53LX,
-        interrupt_polarity: VL53LX_DeviceInterruptPolarity,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_get_interrupt_polarityEPh"]
-    fn VL53LX_VL53LX_get_interrupt_polarity(
-        this: *mut VL53LX,
-        pinterrupt_polarity: *mut VL53LX_DeviceInterruptPolarity,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_get_refspadchar_config_structEP27VL53LX_refspadchar_config_t"]
-    fn VL53LX_VL53LX_get_refspadchar_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_refspadchar_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_set_refspadchar_config_structEP27VL53LX_refspadchar_config_t"]
-    fn VL53LX_VL53LX_set_refspadchar_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_refspadchar_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_set_range_ignore_thresholdEht"]
-    fn VL53LX_VL53LX_set_range_ignore_threshold(
-        this: *mut VL53LX,
-        range_ignore_thresh_mult: u8,
-        range_ignore_threshold_mcps: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_get_range_ignore_thresholdEPhPtS1_"]
-    fn VL53LX_VL53LX_get_range_ignore_threshold(
-        this: *mut VL53LX,
-        prange_ignore_thresh_mult: *mut u8,
-        prange_ignore_threshold_mcps_internal: *mut u16,
-        prange_ignore_threshold_mcps_current: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_set_user_zoneEP18VL53LX_user_zone_t"]
-    fn VL53LX_VL53LX_set_user_zone(
-        this: *mut VL53LX,
-        puser_zone: *mut VL53LX_user_zone_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_get_user_zoneEP18VL53LX_user_zone_t"]
-    fn VL53LX_VL53LX_get_user_zone(
-        this: *mut VL53LX,
-        puser_zone: *mut VL53LX_user_zone_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_mode_mitigation_roiEP18VL53LX_user_zone_t"]
-    fn VL53LX_VL53LX_get_mode_mitigation_roi(
-        this: *mut VL53LX,
-        pmm_roi: *mut VL53LX_user_zone_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_zone_configEP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_set_zone_config(
-        this: *mut VL53LX,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_get_zone_configEP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_get_zone_config(
-        this: *mut VL53LX,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_preset_modeEhtjjjj"]
-    fn VL53LX_VL53LX_set_preset_mode(
-        this: *mut VL53LX,
-        device_preset_mode: VL53LX_DevicePresetModes,
-        dss_config__target_total_rate_mcps: u16,
-        phasecal_config_timeout_us: u32,
-        mm_config_timeout_us: u32,
-        range_config_timeout_us: u32,
-        inter_measurement_period_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_get_preset_mode_timing_cfgEhPtPjS1_S1_"]
-    fn VL53LX_VL53LX_get_preset_mode_timing_cfg(
-        this: *mut VL53LX,
-        device_preset_mode: VL53LX_DevicePresetModes,
-        pdss_config__target_total_rate_mcps: *mut u16,
-        pphasecal_config_timeout_us: *mut u32,
-        pmm_config_timeout_us: *mut u32,
-        prange_config_timeout_us: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_zone_presetEh"]
-    fn VL53LX_VL53LX_set_zone_preset(
-        this: *mut VL53LX,
-        zone_preset: VL53LX_DeviceZonePreset,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_enable_xtalk_compensationEv"]
-    fn VL53LX_VL53LX_enable_xtalk_compensation(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_disable_xtalk_compensationEv"]
-    fn VL53LX_VL53LX_disable_xtalk_compensation(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_get_xtalk_compensation_enableEPh"]
-    fn VL53LX_VL53LX_get_xtalk_compensation_enable(
-        this: *mut VL53LX,
-        pcrosstalk_compensation_enable: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_init_and_start_rangeEhh"]
-    fn VL53LX_VL53LX_init_and_start_range(
-        this: *mut VL53LX,
-        measurement_mode: u8,
-        device_config_level: VL53LX_DeviceConfigLevel,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_stop_rangeEv"]
-    fn VL53LX_VL53LX_stop_range(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_measurement_resultsEh"]
-    fn VL53LX_VL53LX_get_measurement_results(
-        this: *mut VL53LX,
-        device_result_level: VL53LX_DeviceResultsLevel,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_device_resultsEhP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_get_device_results(
-        this: *mut VL53LX,
-        device_result_level: VL53LX_DeviceResultsLevel,
-        prange_results: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_clear_interrupt_and_enable_next_rangeEh"]
-    fn VL53LX_VL53LX_clear_interrupt_and_enable_next_range(
-        this: *mut VL53LX,
-        measurement_mode: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_get_histogram_bin_dataEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_get_histogram_bin_data(
-        this: *mut VL53LX,
-        phist_data: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX49VL53LX_copy_sys_and_core_results_to_range_resultsEiP23VL53LX_system_results_tP21VL53LX_core_results_tP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_copy_sys_and_core_results_to_range_results(
-        this: *mut VL53LX,
-        gain_factor: i32,
-        psys: *mut VL53LX_system_results_t,
-        pcore: *mut VL53LX_core_results_t,
-        presults: *mut VL53LX_range_results_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_set_zone_dss_configEP29VL53LX_zone_private_dyn_cfg_t"]
-    fn VL53LX_VL53LX_set_zone_dss_config(
-        this: *mut VL53LX,
-        pzone_dyn_cfg: *mut VL53LX_zone_private_dyn_cfg_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_calc_ambient_dmaxEtPs"]
-    fn VL53LX_VL53LX_calc_ambient_dmax(
-        this: *mut VL53LX,
-        target_reflectance: u16,
-        pambient_dmax_mm: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_set_GPIO_interrupt_configEhhhhhtttt"]
-    fn VL53LX_VL53LX_set_GPIO_interrupt_config(
-        this: *mut VL53LX,
-        intr_mode_distance: VL53LX_GPIO_Interrupt_Mode,
-        intr_mode_rate: VL53LX_GPIO_Interrupt_Mode,
-        intr_new_measure_ready: u8,
-        intr_no_target: u8,
-        intr_combined_mode: u8,
-        thresh_distance_high: u16,
-        thresh_distance_low: u16,
-        thresh_rate_high: u16,
-        thresh_rate_low: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_set_GPIO_interrupt_config_structE30VL53LX_GPIO_interrupt_config_t"]
-    fn VL53LX_VL53LX_set_GPIO_interrupt_config_struct(
-        this: *mut VL53LX,
-        intconf: VL53LX_GPIO_interrupt_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_get_GPIO_interrupt_configEP30VL53LX_GPIO_interrupt_config_t"]
-    fn VL53LX_VL53LX_get_GPIO_interrupt_config(
-        this: *mut VL53LX,
-        pintconf: *mut VL53LX_GPIO_interrupt_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_set_dmax_modeEh"]
-    fn VL53LX_VL53LX_set_dmax_mode(
-        this: *mut VL53LX,
-        dmax_mode: VL53LX_DeviceDmaxMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_get_dmax_modeEPh"]
-    fn VL53LX_VL53LX_get_dmax_mode(
-        this: *mut VL53LX,
-        pdmax_mode: *mut VL53LX_DeviceDmaxMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_get_dmax_calibration_dataEhP30VL53LX_dmax_calibration_data_t"]
-    fn VL53LX_VL53LX_get_dmax_calibration_data(
-        this: *mut VL53LX,
-        dmax_mode: VL53LX_DeviceDmaxMode,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_set_hist_dmax_configEP30VL53LX_hist_gen3_dmax_config_t"]
-    fn VL53LX_VL53LX_set_hist_dmax_config(
-        this: *mut VL53LX,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_get_hist_dmax_configEP30VL53LX_hist_gen3_dmax_config_t"]
-    fn VL53LX_VL53LX_get_hist_dmax_config(
-        this: *mut VL53LX,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_set_offset_calibration_modeEh"]
-    fn VL53LX_VL53LX_set_offset_calibration_mode(
-        this: *mut VL53LX,
-        offset_cal_mode: VL53LX_OffsetCalibrationMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_get_offset_calibration_modeEPh"]
-    fn VL53LX_VL53LX_get_offset_calibration_mode(
-        this: *mut VL53LX,
-        poffset_cal_mode: *mut VL53LX_OffsetCalibrationMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_set_offset_correction_modeEh"]
-    fn VL53LX_VL53LX_set_offset_correction_mode(
-        this: *mut VL53LX,
-        offset_cor_mode: VL53LX_OffsetCalibrationMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_get_offset_correction_modeEPh"]
-    fn VL53LX_VL53LX_get_offset_correction_mode(
-        this: *mut VL53LX,
-        poffset_cor_mode: *mut VL53LX_OffsetCorrectionMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_set_zone_calibration_dataEP33VL53LX_zone_calibration_results_t"]
-    fn VL53LX_VL53LX_set_zone_calibration_data(
-        this: *mut VL53LX,
-        pzone_cal: *mut VL53LX_zone_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_get_zone_calibration_dataEP33VL53LX_zone_calibration_results_t"]
-    fn VL53LX_VL53LX_get_zone_calibration_data(
-        this: *mut VL53LX,
-        pzone_cal: *mut VL53LX_zone_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_get_lite_xtalk_margin_kcpsEPs"]
-    fn VL53LX_VL53LX_get_lite_xtalk_margin_kcps(
-        this: *mut VL53LX,
-        pxtalk_margin: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_set_lite_xtalk_margin_kcpsEs"]
-    fn VL53LX_VL53LX_set_lite_xtalk_margin_kcps(
-        this: *mut VL53LX,
-        xtalk_margin: i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_get_histogram_xtalk_margin_kcpsEPs"]
-    fn VL53LX_VL53LX_get_histogram_xtalk_margin_kcps(
-        this: *mut VL53LX,
-        pxtalk_margin: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_set_histogram_xtalk_margin_kcpsEs"]
-    fn VL53LX_VL53LX_set_histogram_xtalk_margin_kcps(
-        this: *mut VL53LX,
-        xtalk_margin: i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_get_histogram_phase_consistencyEPh"]
-    fn VL53LX_VL53LX_get_histogram_phase_consistency(
-        this: *mut VL53LX,
-        pphase_consistency: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_set_histogram_phase_consistencyEh"]
-    fn VL53LX_VL53LX_set_histogram_phase_consistency(
-        this: *mut VL53LX,
-        phase_consistency: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_get_histogram_event_consistencyEPh"]
-    fn VL53LX_VL53LX_get_histogram_event_consistency(
-        this: *mut VL53LX,
-        pevent_consistency: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_set_histogram_event_consistencyEh"]
-    fn VL53LX_VL53LX_set_histogram_event_consistency(
-        this: *mut VL53LX,
-        event_consistency: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_get_histogram_ambient_threshold_sigmaEPh"]
-    fn VL53LX_VL53LX_get_histogram_ambient_threshold_sigma(
-        this: *mut VL53LX,
-        pamb_thresh_sigma: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_set_histogram_ambient_threshold_sigmaEh"]
-    fn VL53LX_VL53LX_set_histogram_ambient_threshold_sigma(
-        this: *mut VL53LX,
-        amb_thresh_sigma: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_lite_min_count_rateEPt"]
-    fn VL53LX_VL53LX_get_lite_min_count_rate(
-        this: *mut VL53LX,
-        plite_mincountrate: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_lite_min_count_rateEt"]
-    fn VL53LX_VL53LX_set_lite_min_count_rate(
-        this: *mut VL53LX,
-        lite_mincountrate: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_get_lite_sigma_thresholdEPt"]
-    fn VL53LX_VL53LX_get_lite_sigma_threshold(
-        this: *mut VL53LX,
-        plite_sigma: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_set_lite_sigma_thresholdEt"]
-    fn VL53LX_VL53LX_set_lite_sigma_threshold(
-        this: *mut VL53LX,
-        lite_sigma: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_restore_xtalk_nvm_defaultEv"]
-    fn VL53LX_VL53LX_restore_xtalk_nvm_default(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_xtalk_detect_configEPsS0_PtS1_"]
-    fn VL53LX_VL53LX_get_xtalk_detect_config(
-        this: *mut VL53LX,
-        pmax_valid_range_mm: *mut i16,
-        pmin_valid_range_mm: *mut i16,
-        pmax_valid_rate_kcps: *mut u16,
-        pmax_sigma_mm: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_xtalk_detect_configEsstt"]
-    fn VL53LX_VL53LX_set_xtalk_detect_config(
-        this: *mut VL53LX,
-        max_valid_range_mm: i16,
-        min_valid_range_mm: i16,
-        max_valid_rate_kcps: u16,
-        max_sigma_mm: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_get_target_order_modeEPh"]
-    fn VL53LX_VL53LX_get_target_order_mode(
-        this: *mut VL53LX,
-        phist_target_order: *mut VL53LX_HistTargetOrder,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_set_target_order_modeEh"]
-    fn VL53LX_VL53LX_set_target_order_mode(
-        this: *mut VL53LX,
-        hist_target_order: VL53LX_HistTargetOrder,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_set_dmax_reflectance_valuesEP31VL53LX_dmax_reflectance_array_t"]
-    fn VL53LX_VL53LX_set_dmax_reflectance_values(
-        this: *mut VL53LX,
-        pdmax_reflectances: *mut VL53LX_dmax_reflectance_array_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_get_dmax_reflectance_valuesEP31VL53LX_dmax_reflectance_array_t"]
-    fn VL53LX_VL53LX_get_dmax_reflectance_values(
-        this: *mut VL53LX,
-        pdmax_reflectances: *mut VL53LX_dmax_reflectance_array_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_set_vhv_configEhh"]
-    fn VL53LX_VL53LX_set_vhv_config(
-        this: *mut VL53LX,
-        vhv_init_en: u8,
-        vhv_init_value: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_get_vhv_configEPhS0_"]
-    fn VL53LX_VL53LX_get_vhv_config(
-        this: *mut VL53LX,
-        pvhv_init_en: *mut u8,
-        pvhv_init_value: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_vhv_loopboundEh"]
-    fn VL53LX_VL53LX_set_vhv_loopbound(this: *mut VL53LX, vhv_loopbound: u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_vhv_loopboundEPh"]
-    fn VL53LX_VL53LX_get_vhv_loopbound(
-        this: *mut VL53LX,
-        pvhv_loopbound: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_get_tuning_parmEtPi"]
-    fn VL53LX_VL53LX_get_tuning_parm(
-        this: *mut VL53LX,
-        tuning_parm_key: VL53LX_TuningParms,
-        ptuning_parm_value: *mut i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_tuning_parmEti"]
-    fn VL53LX_VL53LX_set_tuning_parm(
-        this: *mut VL53LX,
-        tuning_parm_key: VL53LX_TuningParms,
-        tuning_parm_value: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_dynamic_xtalk_correction_enableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_enable(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_dynamic_xtalk_correction_disableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_disable(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_dynamic_xtalk_correction_apply_enableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_apply_enable(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_dynamic_xtalk_correction_apply_disableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_apply_disable(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX51VL53LX_dynamic_xtalk_correction_single_apply_enableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_single_apply_enable(
-        this: *mut VL53LX,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX52VL53LX_dynamic_xtalk_correction_single_apply_disableEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_single_apply_disable(
-        this: *mut VL53LX,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_dynamic_xtalk_correction_set_scalersEssh"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_set_scalers(
-        this: *mut VL53LX,
-        x_scaler_in: i16,
-        y_scaler_in: i16,
-        user_scaler_set_in: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_get_current_xtalk_settingsEP34VL53LX_xtalk_calibration_results_t"]
-    fn VL53LX_VL53LX_get_current_xtalk_settings(
-        this: *mut VL53LX,
-        pxtalk: *mut VL53LX_xtalk_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_set_current_xtalk_settingsEP34VL53LX_xtalk_calibration_results_t"]
-    fn VL53LX_VL53LX_set_current_xtalk_settings(
-        this: *mut VL53LX,
-        pxtalk: *mut VL53LX_xtalk_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_load_patchEv"]
-    fn VL53LX_VL53LX_load_patch(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX19VL53LX_unload_patchEv"]
-    fn VL53LX_VL53LX_unload_patch(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_i2c_encode_static_nvm_managedEP27VL53LX_static_nvm_managed_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_static_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_nvm_managed_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_i2c_decode_static_nvm_managedEtPhP27VL53LX_static_nvm_managed_t"]
-    fn VL53LX_VL53LX_i2c_decode_static_nvm_managed(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_static_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_set_static_nvm_managedEP27VL53LX_static_nvm_managed_t"]
-    fn VL53LX_VL53LX_set_static_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_get_static_nvm_managedEP27VL53LX_static_nvm_managed_t"]
-    fn VL53LX_VL53LX_get_static_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_i2c_encode_customer_nvm_managedEP29VL53LX_customer_nvm_managed_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_customer_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_customer_nvm_managed_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_i2c_decode_customer_nvm_managedEtPhP29VL53LX_customer_nvm_managed_t"]
-    fn VL53LX_VL53LX_i2c_decode_customer_nvm_managed(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_customer_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_set_customer_nvm_managedEP29VL53LX_customer_nvm_managed_t"]
-    fn VL53LX_VL53LX_set_customer_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_customer_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_get_customer_nvm_managedEP29VL53LX_customer_nvm_managed_t"]
-    fn VL53LX_VL53LX_get_customer_nvm_managed(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_customer_nvm_managed_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_encode_static_configEP22VL53LX_static_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_decode_static_configEtPhP22VL53LX_static_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_static_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_static_configEP22VL53LX_static_config_t"]
-    fn VL53LX_VL53LX_set_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_static_configEP22VL53LX_static_config_t"]
-    fn VL53LX_VL53LX_get_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_encode_general_configEP23VL53LX_general_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_general_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_decode_general_configEtPhP23VL53LX_general_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_general_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_set_general_configEP23VL53LX_general_config_t"]
-    fn VL53LX_VL53LX_set_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_general_configEP23VL53LX_general_config_t"]
-    fn VL53LX_VL53LX_get_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_encode_timing_configEP22VL53LX_timing_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_timing_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_decode_timing_configEtPhP22VL53LX_timing_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_timing_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_timing_configEP22VL53LX_timing_config_t"]
-    fn VL53LX_VL53LX_set_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_timing_configEP22VL53LX_timing_config_t"]
-    fn VL53LX_VL53LX_get_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_encode_dynamic_configEP23VL53LX_dynamic_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_dynamic_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_dynamic_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_decode_dynamic_configEtPhP23VL53LX_dynamic_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_dynamic_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_dynamic_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_set_dynamic_configEP23VL53LX_dynamic_config_t"]
-    fn VL53LX_VL53LX_set_dynamic_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_dynamic_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_dynamic_configEP23VL53LX_dynamic_config_t"]
-    fn VL53LX_VL53LX_get_dynamic_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_dynamic_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_encode_system_controlEP23VL53LX_system_control_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_system_control(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_control_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_decode_system_controlEtPhP23VL53LX_system_control_t"]
-    fn VL53LX_VL53LX_i2c_decode_system_control(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_system_control_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_set_system_controlEP23VL53LX_system_control_t"]
-    fn VL53LX_VL53LX_set_system_control(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_control_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_system_controlEP23VL53LX_system_control_t"]
-    fn VL53LX_VL53LX_get_system_control(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_control_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_encode_system_resultsEP23VL53LX_system_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_i2c_decode_system_resultsEtPhP23VL53LX_system_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_system_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_set_system_resultsEP23VL53LX_system_results_t"]
-    fn VL53LX_VL53LX_set_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_system_resultsEP23VL53LX_system_results_t"]
-    fn VL53LX_VL53LX_get_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_i2c_encode_core_resultsEP21VL53LX_core_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_core_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_i2c_decode_core_resultsEtPhP21VL53LX_core_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_core_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_set_core_resultsEP21VL53LX_core_results_t"]
-    fn VL53LX_VL53LX_set_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_get_core_resultsEP21VL53LX_core_results_t"]
-    fn VL53LX_VL53LX_get_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_encode_debug_resultsEP22VL53LX_debug_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_debug_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_debug_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_decode_debug_resultsEtPhP22VL53LX_debug_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_debug_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_debug_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_debug_resultsEP22VL53LX_debug_results_t"]
-    fn VL53LX_VL53LX_set_debug_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_debug_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_debug_resultsEP22VL53LX_debug_results_t"]
-    fn VL53LX_VL53LX_get_debug_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_debug_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_encode_nvm_copy_dataEP22VL53LX_nvm_copy_data_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_nvm_copy_data(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_nvm_copy_data_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_decode_nvm_copy_dataEtPhP22VL53LX_nvm_copy_data_t"]
-    fn VL53LX_VL53LX_i2c_decode_nvm_copy_data(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_nvm_copy_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_nvm_copy_dataEP22VL53LX_nvm_copy_data_t"]
-    fn VL53LX_VL53LX_set_nvm_copy_data(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_nvm_copy_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_nvm_copy_dataEP22VL53LX_nvm_copy_data_t"]
-    fn VL53LX_VL53LX_get_nvm_copy_data(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_nvm_copy_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_i2c_encode_prev_shadow_system_resultsEP35VL53LX_prev_shadow_system_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_prev_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_system_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_i2c_decode_prev_shadow_system_resultsEtPhP35VL53LX_prev_shadow_system_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_prev_shadow_system_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_prev_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_set_prev_shadow_system_resultsEP35VL53LX_prev_shadow_system_results_t"]
-    fn VL53LX_VL53LX_set_prev_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_get_prev_shadow_system_resultsEP35VL53LX_prev_shadow_system_results_t"]
-    fn VL53LX_VL53LX_get_prev_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX42VL53LX_i2c_encode_prev_shadow_core_resultsEP33VL53LX_prev_shadow_core_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_prev_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_core_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX42VL53LX_i2c_decode_prev_shadow_core_resultsEtPhP33VL53LX_prev_shadow_core_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_prev_shadow_core_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_prev_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_set_prev_shadow_core_resultsEP33VL53LX_prev_shadow_core_results_t"]
-    fn VL53LX_VL53LX_set_prev_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_get_prev_shadow_core_resultsEP33VL53LX_prev_shadow_core_results_t"]
-    fn VL53LX_VL53LX_get_prev_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_prev_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_i2c_encode_patch_debugEP20VL53LX_patch_debug_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_patch_debug(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_debug_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_i2c_decode_patch_debugEtPhP20VL53LX_patch_debug_t"]
-    fn VL53LX_VL53LX_i2c_decode_patch_debug(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_patch_debug_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_patch_debugEP20VL53LX_patch_debug_t"]
-    fn VL53LX_VL53LX_set_patch_debug(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_debug_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_get_patch_debugEP20VL53LX_patch_debug_t"]
-    fn VL53LX_VL53LX_get_patch_debug(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_debug_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_i2c_encode_gph_general_configEP27VL53LX_gph_general_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_gph_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_general_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_i2c_decode_gph_general_configEtPhP27VL53LX_gph_general_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_gph_general_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_gph_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_set_gph_general_configEP27VL53LX_gph_general_config_t"]
-    fn VL53LX_VL53LX_set_gph_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_get_gph_general_configEP27VL53LX_gph_general_config_t"]
-    fn VL53LX_VL53LX_get_gph_general_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_general_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_i2c_encode_gph_static_configEP26VL53LX_gph_static_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_gph_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_static_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_i2c_decode_gph_static_configEtPhP26VL53LX_gph_static_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_gph_static_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_gph_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_set_gph_static_configEP26VL53LX_gph_static_config_t"]
-    fn VL53LX_VL53LX_set_gph_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_get_gph_static_configEP26VL53LX_gph_static_config_t"]
-    fn VL53LX_VL53LX_get_gph_static_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_static_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_i2c_encode_gph_timing_configEP26VL53LX_gph_timing_config_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_gph_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_timing_config_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_i2c_decode_gph_timing_configEtPhP26VL53LX_gph_timing_config_t"]
-    fn VL53LX_VL53LX_i2c_decode_gph_timing_config(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_gph_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_set_gph_timing_configEP26VL53LX_gph_timing_config_t"]
-    fn VL53LX_VL53LX_set_gph_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_get_gph_timing_configEP26VL53LX_gph_timing_config_t"]
-    fn VL53LX_VL53LX_get_gph_timing_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_gph_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_i2c_encode_fw_internalEP20VL53LX_fw_internal_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_fw_internal(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_fw_internal_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_i2c_decode_fw_internalEtPhP20VL53LX_fw_internal_t"]
-    fn VL53LX_VL53LX_i2c_decode_fw_internal(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_fw_internal_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_set_fw_internalEP20VL53LX_fw_internal_t"]
-    fn VL53LX_VL53LX_set_fw_internal(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_fw_internal_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_get_fw_internalEP20VL53LX_fw_internal_t"]
-    fn VL53LX_VL53LX_get_fw_internal(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_fw_internal_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_encode_patch_resultsEP22VL53LX_patch_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_patch_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_i2c_decode_patch_resultsEtPhP22VL53LX_patch_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_patch_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_patch_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_set_patch_resultsEP22VL53LX_patch_results_t"]
-    fn VL53LX_VL53LX_set_patch_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_get_patch_resultsEP22VL53LX_patch_results_t"]
-    fn VL53LX_VL53LX_get_patch_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_patch_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_i2c_encode_shadow_system_resultsEP30VL53LX_shadow_system_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_system_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_i2c_decode_shadow_system_resultsEtPhP30VL53LX_shadow_system_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_shadow_system_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_set_shadow_system_resultsEP30VL53LX_shadow_system_results_t"]
-    fn VL53LX_VL53LX_set_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_get_shadow_system_resultsEP30VL53LX_shadow_system_results_t"]
-    fn VL53LX_VL53LX_get_shadow_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_system_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_i2c_encode_shadow_core_resultsEP28VL53LX_shadow_core_results_ttPh"]
-    fn VL53LX_VL53LX_i2c_encode_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_core_results_t,
-        buf_size: u16,
-        pbuffer: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_i2c_decode_shadow_core_resultsEtPhP28VL53LX_shadow_core_results_t"]
-    fn VL53LX_VL53LX_i2c_decode_shadow_core_results(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_shadow_core_resultsEP28VL53LX_shadow_core_results_t"]
-    fn VL53LX_VL53LX_set_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_get_shadow_core_resultsEP28VL53LX_shadow_core_results_t"]
-    fn VL53LX_VL53LX_get_shadow_core_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_shadow_core_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_nvm_enableEti"]
-    fn VL53LX_VL53LX_nvm_enable(
-        this: *mut VL53LX,
-        nvm_ctrl_pulse_width: u16,
-        nvm_power_up_delay_us: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX15VL53LX_nvm_readEhhPh"]
-    fn VL53LX_VL53LX_nvm_read(
-        this: *mut VL53LX,
-        start_address: u8,
-        count: u8,
-        pdata: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX18VL53LX_nvm_disableEv"]
-    fn VL53LX_VL53LX_nvm_disable(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_nvm_format_decodeEtPhP25VL53LX_decoded_nvm_data_t"]
-    fn VL53LX_VL53LX_nvm_format_decode(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_decoded_nvm_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_nvm_decode_optical_centreEtPhP23VL53LX_optical_centre_t"]
-    fn VL53LX_VL53LX_nvm_decode_optical_centre(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_optical_centre_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_nvm_decode_cal_peak_rate_mapEtPhP26VL53LX_cal_peak_rate_map_t"]
-    fn VL53LX_VL53LX_nvm_decode_cal_peak_rate_map(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_cal_peak_rate_map_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_nvm_decode_additional_offset_cal_dataEtPhP35VL53LX_additional_offset_cal_data_t"]
-    fn VL53LX_VL53LX_nvm_decode_additional_offset_cal_data(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_additional_offset_cal_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_nvm_decode_fmt_range_results_dataEtPhP35VL53LX_decoded_nvm_fmt_range_data_t"]
-    fn VL53LX_VL53LX_nvm_decode_fmt_range_results_data(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_decoded_nvm_fmt_range_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_nvm_decode_fmt_infoEtPhP29VL53LX_decoded_nvm_fmt_info_t"]
-    fn VL53LX_VL53LX_nvm_decode_fmt_info(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_decoded_nvm_fmt_info_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_nvm_decode_ews_infoEtPhP29VL53LX_decoded_nvm_ews_info_t"]
-    fn VL53LX_VL53LX_nvm_decode_ews_info(
-        this: *mut VL53LX,
-        buf_size: u16,
-        pbuffer: *mut u8,
-        pdata: *mut VL53LX_decoded_nvm_ews_info_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_nvm_format_encodeEP25VL53LX_decoded_nvm_data_tPh"]
-    fn VL53LX_VL53LX_nvm_format_encode(
-        this: *mut VL53LX,
-        pnvm_info: *mut VL53LX_decoded_nvm_data_t,
-        pnvm_data: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_read_nvm_raw_dataEhhPh"]
-    fn VL53LX_VL53LX_read_nvm_raw_data(
-        this: *mut VL53LX,
-        start_address: u8,
-        count: u8,
-        pnvm_raw_data: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX15VL53LX_read_nvmEhP25VL53LX_decoded_nvm_data_t"]
-    fn VL53LX_VL53LX_read_nvm(
-        this: *mut VL53LX,
-        nvm_format: u8,
-        pnvm_info: *mut VL53LX_decoded_nvm_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_read_nvm_optical_centreEP23VL53LX_optical_centre_t"]
-    fn VL53LX_VL53LX_read_nvm_optical_centre(
-        this: *mut VL53LX,
-        pcentre: *mut VL53LX_optical_centre_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_read_nvm_cal_peak_rate_mapEP26VL53LX_cal_peak_rate_map_t"]
-    fn VL53LX_VL53LX_read_nvm_cal_peak_rate_map(
-        this: *mut VL53LX,
-        pcal_data: *mut VL53LX_cal_peak_rate_map_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX42VL53LX_read_nvm_additional_offset_cal_dataEP35VL53LX_additional_offset_cal_data_t"]
-    fn VL53LX_VL53LX_read_nvm_additional_offset_cal_data(
-        this: *mut VL53LX,
-        pcal_data: *mut VL53LX_additional_offset_cal_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_read_nvm_fmt_range_results_dataEtP35VL53LX_decoded_nvm_fmt_range_data_t"]
-    fn VL53LX_VL53LX_read_nvm_fmt_range_results_data(
-        this: *mut VL53LX,
-        range_results_select: u16,
-        prange_data: *mut VL53LX_decoded_nvm_fmt_range_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_ipp_hist_process_dataEP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP33VL53LX_hist_post_process_config_tP27VL53LX_histogram_bin_data_tP29VL53LX_xtalk_histogram_data_tPhSA_SA_P22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_ipp_hist_process_data(
-        this: *mut VL53LX,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        ppost_cfg: *mut VL53LX_hist_post_process_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk: *mut VL53LX_xtalk_histogram_data_t,
-        pArea1: *mut u8,
-        pArea2: *mut u8,
-        phisto_merge_nb: *mut u8,
-        presults: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_ipp_hist_ambient_dmaxEtP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP27VL53LX_histogram_bin_data_tPs"]
-    fn VL53LX_VL53LX_ipp_hist_ambient_dmax(
-        this: *mut VL53LX,
-        target_reflectance: u16,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pambient_dmax_mm: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_ipp_xtalk_calibration_process_dataEP28VL53LX_xtalk_range_results_tP29VL53LX_xtalk_histogram_data_tP34VL53LX_xtalk_calibration_results_t"]
-    fn VL53LX_VL53LX_ipp_xtalk_calibration_process_data(
-        this: *mut VL53LX,
-        pxtalk_ranges: *mut VL53LX_xtalk_range_results_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_data_t,
-        pxtalk_cal: *mut VL53LX_xtalk_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_ipp_hist_xtalk_correctionEP29VL53LX_customer_nvm_managed_tP23VL53LX_dynamic_config_tP29VL53LX_xtalk_histogram_data_tP27VL53LX_histogram_bin_data_tS7_S7_"]
-    fn VL53LX_VL53LX_ipp_hist_xtalk_correction(
-        this: *mut VL53LX,
-        pcustomer: *mut VL53LX_customer_nvm_managed_t,
-        pdyn_cfg: *mut VL53LX_dynamic_config_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_data_t,
-        pip_hist_data: *mut VL53LX_histogram_bin_data_t,
-        pop_hist_data: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_count_data: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX50VL53LX_ipp_generate_dual_reflectance_xtalk_samplesEP28VL53LX_xtalk_range_results_tthP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_ipp_generate_dual_reflectance_xtalk_samples(
-        this: *mut VL53LX,
-        pxtalk_results: *mut VL53LX_xtalk_range_results_t,
-        expected_target_distance_mm: u16,
-        higher_reflectance: u8,
-        pxtalk_avg_samples: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_hist_process_dataEP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP33VL53LX_hist_post_process_config_tP27VL53LX_histogram_bin_data_tP29VL53LX_xtalk_histogram_data_tPhSA_P22VL53LX_range_results_tSA_"]
-    fn VL53LX_VL53LX_hist_process_data(
-        this: *mut VL53LX,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        ppost_cfg: *mut VL53LX_hist_post_process_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk: *mut VL53LX_xtalk_histogram_data_t,
-        pArea1: *mut u8,
-        pArea2: *mut u8,
-        presults: *mut VL53LX_range_results_t,
-        HistMergeNumber: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_hist_ambient_dmaxEtP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP27VL53LX_histogram_bin_data_tPs"]
-    fn VL53LX_VL53LX_hist_ambient_dmax(
-        this: *mut VL53LX,
-        target_reflectance: u16,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pambient_dmax_mm: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_calc_pll_period_usEt"]
-    fn VL53LX_VL53LX_calc_pll_period_us(this: *mut VL53LX, fast_osc_frequency: u16) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_duration_mathsEjjjj"]
-    fn VL53LX_VL53LX_duration_maths(
-        this: *mut VL53LX,
-        pll_period_us: u32,
-        vcsel_parm_pclks: u32,
-        window_vclks: u32,
-        periods_elapsed_mclks: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX28VL53LX_events_per_spad_mathsEitj"]
-    fn VL53LX_VL53LX_events_per_spad_maths(
-        this: *mut VL53LX,
-        VL53LX_p_010: i32,
-        num_spads: u16,
-        duration: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_isqrtEj"]
-    fn VL53LX_VL53LX_isqrt(this: *mut VL53LX, num: u32) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_hist_calc_zero_distance_phaseEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_calc_zero_distance_phase(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX50VL53LX_hist_estimate_ambient_from_thresholded_binsEiP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_estimate_ambient_from_thresholded_bins(
-        this: *mut VL53LX,
-        ambient_threshold_sigma: i32,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_hist_remove_ambient_binsEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_remove_ambient_bins(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_calc_pll_period_mmEt"]
-    fn VL53LX_VL53LX_calc_pll_period_mm(this: *mut VL53LX, fast_osc_frequency: u16) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_rate_mathsEij"]
-    fn VL53LX_VL53LX_rate_maths(this: *mut VL53LX, VL53LX_p_018: i32, time_us: u32) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_rate_per_spad_mathsEjjtj"]
-    fn VL53LX_VL53LX_rate_per_spad_maths(
-        this: *mut VL53LX,
-        frac_bits: u32,
-        peak_count_rate: u32,
-        num_spads: u16,
-        max_output_value: u32,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX18VL53LX_range_mathsEttthii"]
-    fn VL53LX_VL53LX_range_maths(
-        this: *mut VL53LX,
-        fast_osc_frequency: u16,
-        VL53LX_p_014: u16,
-        zero_distance_phase: u16,
-        fractional_bits: u8,
-        gain_factor: i32,
-        range_offset_mm: i32,
-    ) -> i32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_decode_vcsel_periodEh"]
-    fn VL53LX_VL53LX_decode_vcsel_period(this: *mut VL53LX, vcsel_period_reg: u8) -> u8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX51VL53LX_copy_xtalk_bin_data_to_histogram_data_structEP30VL53LX_xtalk_histogram_shape_tP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_copy_xtalk_bin_data_to_histogram_data_struct(
-        this: *mut VL53LX,
-        pxtalk: *mut VL53LX_xtalk_histogram_shape_t,
-        phist: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_init_histogram_bin_data_structEitP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_init_histogram_bin_data_struct(
-        this: *mut VL53LX,
-        bin_value: i32,
-        VL53LX_p_021: u16,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_decode_row_colEhPhS0_"]
-    fn VL53LX_VL53LX_decode_row_col(
-        this: *mut VL53LX,
-        spad_number: u8,
-        prow: *mut u8,
-        pcol: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_hist_find_min_max_bin_valuesEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_find_min_max_bin_values(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_hist_estimate_ambient_from_ambient_binsEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_estimate_ambient_from_ambient_bins(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX19VL53LX_init_versionEv"]
-    fn VL53LX_VL53LX_init_version(this: *mut VL53LX);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_init_ll_driver_stateEh"]
-    fn VL53LX_VL53LX_init_ll_driver_state(this: *mut VL53LX, ll_state: VL53LX_DeviceState);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_update_ll_driver_rd_stateEv"]
-    fn VL53LX_VL53LX_update_ll_driver_rd_state(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_check_ll_driver_rd_stateEv"]
-    fn VL53LX_VL53LX_check_ll_driver_rd_state(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_update_ll_driver_cfg_stateEv"]
-    fn VL53LX_VL53LX_update_ll_driver_cfg_state(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_copy_rtn_good_spads_to_bufferEP22VL53LX_nvm_copy_data_tPh"]
-    fn VL53LX_VL53LX_copy_rtn_good_spads_to_buffer(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_nvm_copy_data_t,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_init_system_resultsEP23VL53LX_system_results_t"]
-    fn VL53LX_VL53LX_init_system_results(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_system_results_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33V53L1_init_zone_results_structureEhP21VL53LX_zone_results_t"]
-    fn VL53LX_V53L1_init_zone_results_structure(
-        this: *mut VL53LX,
-        active_zones: u8,
-        pdata: *mut VL53LX_zone_results_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27V53L1_init_zone_dss_configsEv"]
-    fn VL53LX_V53L1_init_zone_dss_configs(this: *mut VL53LX);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_init_histogram_config_structureEhhhhhhhhhhhhP25VL53LX_histogram_config_t"]
-    fn VL53LX_VL53LX_init_histogram_config_structure(
-        this: *mut VL53LX,
-        even_bin0: u8,
-        even_bin1: u8,
-        even_bin2: u8,
-        even_bin3: u8,
-        even_bin4: u8,
-        even_bin5: u8,
-        odd_bin0: u8,
-        odd_bin1: u8,
-        odd_bin2: u8,
-        odd_bin3: u8,
-        odd_bin4: u8,
-        odd_bin5: u8,
-        pdata: *mut VL53LX_histogram_config_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX48VL53LX_init_histogram_multizone_config_structureEhhhhhhhhhhhhP25VL53LX_histogram_config_t"]
-    fn VL53LX_VL53LX_init_histogram_multizone_config_structure(
-        this: *mut VL53LX,
-        even_bin0: u8,
-        even_bin1: u8,
-        even_bin2: u8,
-        even_bin3: u8,
-        even_bin4: u8,
-        even_bin5: u8,
-        odd_bin0: u8,
-        odd_bin1: u8,
-        odd_bin2: u8,
-        odd_bin3: u8,
-        odd_bin4: u8,
-        odd_bin5: u8,
-        pdata: *mut VL53LX_histogram_config_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_init_xtalk_bin_data_structEjtP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_init_xtalk_bin_data_struct(
-        this: *mut VL53LX,
-        bin_value: u32,
-        VL53LX_p_021: u16,
-        pdata: *mut VL53LX_xtalk_histogram_shape_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_i2c_encode_uint16_tEttPh"]
-    fn VL53LX_VL53LX_i2c_encode_uint16_t(
-        this: *mut VL53LX,
-        ip_value: u16,
-        count: u16,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_i2c_decode_uint16_tEtPh"]
-    fn VL53LX_VL53LX_i2c_decode_uint16_t(
-        this: *mut VL53LX,
-        count: u16,
-        pbuffer: *mut u8,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_i2c_encode_int16_tEstPh"]
-    fn VL53LX_VL53LX_i2c_encode_int16_t(
-        this: *mut VL53LX,
-        ip_value: i16,
-        count: u16,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_i2c_decode_int16_tEtPh"]
-    fn VL53LX_VL53LX_i2c_decode_int16_t(this: *mut VL53LX, count: u16, pbuffer: *mut u8)
-        -> i16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_i2c_encode_uint32_tEjtPh"]
-    fn VL53LX_VL53LX_i2c_encode_uint32_t(
-        this: *mut VL53LX,
-        ip_value: u32,
-        count: u16,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_i2c_decode_uint32_tEtPh"]
-    fn VL53LX_VL53LX_i2c_decode_uint32_t(
-        this: *mut VL53LX,
-        count: u16,
-        pbuffer: *mut u8,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_i2c_decode_with_maskEtPhjjj"]
-    fn VL53LX_VL53LX_i2c_decode_with_mask(
-        this: *mut VL53LX,
-        count: u16,
-        pbuffer: *mut u8,
-        bit_mask: u32,
-        down_shift: u32,
-        offset: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_i2c_encode_int32_tEitPh"]
-    fn VL53LX_VL53LX_i2c_encode_int32_t(
-        this: *mut VL53LX,
-        ip_value: i32,
-        count: u16,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_i2c_decode_int32_tEtPh"]
-    fn VL53LX_VL53LX_i2c_decode_int32_t(this: *mut VL53LX, count: u16, pbuffer: *mut u8)
-        -> i32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_start_testEh"]
-    fn VL53LX_VL53LX_start_test(this: *mut VL53LX, test_mode__ctrl: u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_set_firmware_enable_registerEh"]
-    fn VL53LX_VL53LX_set_firmware_enable_register(this: *mut VL53LX, value: u8)
-        -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_enable_firmwareEv"]
-    fn VL53LX_VL53LX_enable_firmware(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_disable_firmwareEv"]
-    fn VL53LX_VL53LX_disable_firmware(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_powerforce_registerEh"]
-    fn VL53LX_VL53LX_set_powerforce_register(this: *mut VL53LX, value: u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_enable_powerforceEv"]
-    fn VL53LX_VL53LX_enable_powerforce(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_disable_powerforceEv"]
-    fn VL53LX_VL53LX_disable_powerforce(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_clear_interruptEv"]
-    fn VL53LX_VL53LX_clear_interrupt(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_force_shadow_stream_count_to_zeroEv"]
-    fn VL53LX_VL53LX_force_shadow_stream_count_to_zero(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_calc_macro_period_usEth"]
-    fn VL53LX_VL53LX_calc_macro_period_us(
-        this: *mut VL53LX,
-        fast_osc_frequency: u16,
-        VL53LX_p_005: u8,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_calc_range_ignore_thresholdEjssh"]
-    fn VL53LX_VL53LX_calc_range_ignore_threshold(
-        this: *mut VL53LX,
-        central_rate: u32,
-        x_gradient: i16,
-        y_gradient: i16,
-        rate_mult: u8,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_calc_timeout_mclksEjj"]
-    fn VL53LX_VL53LX_calc_timeout_mclks(
-        this: *mut VL53LX,
-        timeout_us: u32,
-        macro_period_us: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_calc_encoded_timeoutEjj"]
-    fn VL53LX_VL53LX_calc_encoded_timeout(
-        this: *mut VL53LX,
-        timeout_us: u32,
-        macro_period_us: u32,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_calc_timeout_usEjj"]
-    fn VL53LX_VL53LX_calc_timeout_us(
-        this: *mut VL53LX,
-        timeout_mclks: u32,
-        macro_period_us: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_calc_decoded_timeout_usEtj"]
-    fn VL53LX_VL53LX_calc_decoded_timeout_us(
-        this: *mut VL53LX,
-        timeout_encoded: u16,
-        macro_period_us: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_encode_timeoutEj"]
-    fn VL53LX_VL53LX_encode_timeout(this: *mut VL53LX, timeout_mclks: u32) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_decode_timeoutEt"]
-    fn VL53LX_VL53LX_decode_timeout(this: *mut VL53LX, encoded_timeout: u16) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_calc_timeout_register_valuesEjjjtP23VL53LX_general_config_tP22VL53LX_timing_config_t"]
-    fn VL53LX_VL53LX_calc_timeout_register_values(
-        this: *mut VL53LX,
-        phasecal_config_timeout_us: u32,
-        mm_config_timeout_us: u32,
-        range_config_timeout_us: u32,
-        fast_osc_frequency: u16,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_encode_vcsel_periodEh"]
-    fn VL53LX_VL53LX_encode_vcsel_period(this: *mut VL53LX, VL53LX_p_030: u8) -> u8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_decode_unsigned_integerEPhh"]
-    fn VL53LX_VL53LX_decode_unsigned_integer(
-        this: *mut VL53LX,
-        pbuffer: *mut u8,
-        no_of_bytes: u8,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_encode_unsigned_integerEjhPh"]
-    fn VL53LX_VL53LX_encode_unsigned_integer(
-        this: *mut VL53LX,
-        ip_value: u32,
-        no_of_bytes: u8,
-        pbuffer: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_hist_copy_and_scale_ambient_infoEP23VL53LX_zone_hist_info_tP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_copy_and_scale_ambient_info(
-        this: *mut VL53LX,
-        pidata: *mut VL53LX_zone_hist_info_t,
-        podata: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_hist_get_bin_sequence_configEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_hist_get_bin_sequence_config(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_hist_phase_consistency_checkEP23VL53LX_zone_hist_info_tP21VL53LX_zone_objects_tP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_hist_phase_consistency_check(
-        this: *mut VL53LX,
-        phist_prev: *mut VL53LX_zone_hist_info_t,
-        prange_prev: *mut VL53LX_zone_objects_t,
-        prange_curr: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_hist_events_consistency_checkEhtP23VL53LX_zone_hist_info_tP20VL53LX_object_data_tP19VL53LX_range_data_tPiS6_Ph"]
-    fn VL53LX_VL53LX_hist_events_consistency_check(
-        this: *mut VL53LX,
-        event_sigma: u8,
-        min_effective_spad_count: u16,
-        phist_prev: *mut VL53LX_zone_hist_info_t,
-        prange_prev: *mut VL53LX_object_data_t,
-        prange_curr: *mut VL53LX_range_data_t,
-        pevents_tolerance: *mut i32,
-        pevents_delta: *mut i32,
-        prange_status: *mut VL53LX_DeviceError,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_hist_merged_pulse_checkEsP19VL53LX_range_data_tPh"]
-    fn VL53LX_VL53LX_hist_merged_pulse_check(
-        this: *mut VL53LX,
-        min_max_tolerance_mm: i16,
-        pdata: *mut VL53LX_range_data_t,
-        prange_status: *mut VL53LX_DeviceError,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_hist_xmonitor_consistency_checkEP23VL53LX_zone_hist_info_tP21VL53LX_zone_objects_tP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_hist_xmonitor_consistency_check(
-        this: *mut VL53LX,
-        phist_prev: *mut VL53LX_zone_hist_info_t,
-        prange_prev: *mut VL53LX_zone_objects_t,
-        prange_curr: *mut VL53LX_range_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_hist_wrap_dmaxEP33VL53LX_hist_post_process_config_tP27VL53LX_histogram_bin_data_tPs"]
-    fn VL53LX_VL53LX_hist_wrap_dmax(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pcurrent: *mut VL53LX_histogram_bin_data_t,
-        pwrap_dmax_mm: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_hist_combine_mm1_mm2_offsetsEsshhhhP35VL53LX_additional_offset_cal_data_tPhtPs"]
-    fn VL53LX_VL53LX_hist_combine_mm1_mm2_offsets(
-        this: *mut VL53LX,
-        mm1_offset_mm: i16,
-        mm2_offset_mm: i16,
-        encoded_mm_roi_centre: u8,
-        encoded_mm_roi_size: u8,
-        encoded_zone_centre: u8,
-        encoded_zone_size: u8,
-        pcal_data: *mut VL53LX_additional_offset_cal_data_t,
-        pgood_spads: *mut u8,
-        aperture_attenuation: u16,
-        prange_offset_mm: *mut i16,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_hist_xtalk_extract_calc_windowEstP27VL53LX_histogram_bin_data_tP32VL53LX_hist_xtalk_extract_data_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_calc_window(
-        this: *mut VL53LX,
-        target_distance_mm: i16,
-        target_width_oversize: u16,
-        phist_bins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_hist_xtalk_extract_calc_event_sumsEP27VL53LX_histogram_bin_data_tP32VL53LX_hist_xtalk_extract_data_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_calc_event_sums(
-        this: *mut VL53LX,
-        phist_bins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_hist_xtalk_extract_calc_rate_per_spadEP32VL53LX_hist_xtalk_extract_data_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_calc_rate_per_spad(
-        this: *mut VL53LX,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_hist_xtalk_extract_calc_shapeEP32VL53LX_hist_xtalk_extract_data_tP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_calc_shape(
-        this: *mut VL53LX,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_shape_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_hist_xtalk_shape_modelEtttP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_hist_xtalk_shape_model(
-        this: *mut VL53LX,
-        events_per_bin: u16,
-        pulse_centre: u16,
-        pulse_width: u16,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_shape_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_hist_xtalk_shape_model_interpEtj"]
-    fn VL53LX_VL53LX_hist_xtalk_shape_model_interp(
-        this: *mut VL53LX,
-        events_per_bin: u16,
-        phase_delta: u32,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_spad_number_to_byte_bit_indexEhPhS0_S0_"]
-    fn VL53LX_VL53LX_spad_number_to_byte_bit_index(
-        this: *mut VL53LX,
-        spad_number: u8,
-        pbyte_index: *mut u8,
-        pbit_index: *mut u8,
-        pbit_mask: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_encode_row_colEhhPh"]
-    fn VL53LX_VL53LX_encode_row_col(this: *mut VL53LX, row: u8, col: u8, pspad_number: *mut u8);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_decode_zone_sizeEhPhS0_"]
-    fn VL53LX_VL53LX_decode_zone_size(
-        this: *mut VL53LX,
-        encoded_xy_size: u8,
-        pwidth: *mut u8,
-        pheight: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_encode_zone_sizeEhhPh"]
-    fn VL53LX_VL53LX_encode_zone_size(
-        this: *mut VL53LX,
-        width: u8,
-        height: u8,
-        pencoded_xy_size: *mut u8,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_decode_zone_limitsEhhPsS0_S0_S0_"]
-    fn VL53LX_VL53LX_decode_zone_limits(
-        this: *mut VL53LX,
-        encoded_xy_centre: u8,
-        encoded_xy_size: u8,
-        px_ll: *mut i16,
-        py_ll: *mut i16,
-        px_ur: *mut i16,
-        py_ur: *mut i16,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_is_aperture_locationEhh"]
-    fn VL53LX_VL53LX_is_aperture_location(this: *mut VL53LX, row: u8, col: u8) -> u8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_calc_max_effective_spadsEhhPhtPt"]
-    fn VL53LX_VL53LX_calc_max_effective_spads(
-        this: *mut VL53LX,
-        encoded_zone_centre: u8,
-        encoded_zone_size: u8,
-        pgood_spads: *mut u8,
-        aperture_attenuation: u16,
-        pmax_effective_spads: *mut u16,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_calc_mm_effective_spadsEhhhhPhtPtS1_"]
-    fn VL53LX_VL53LX_calc_mm_effective_spads(
-        this: *mut VL53LX,
-        encoded_mm_roi_centre: u8,
-        encoded_mm_roi_size: u8,
-        encoded_zone_centre: u8,
-        encoded_zone_size: u8,
-        pgood_spads: *mut u8,
-        aperture_attenuation: u16,
-        pmm_inner_effective_spads: *mut u16,
-        pmm_outer_effective_spads: *mut u16,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_hist_copy_results_to_sys_and_coreEP27VL53LX_histogram_bin_data_tP22VL53LX_range_results_tP23VL53LX_system_results_tP21VL53LX_core_results_t"]
-    fn VL53LX_VL53LX_hist_copy_results_to_sys_and_core(
-        this: *mut VL53LX,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        phist: *mut VL53LX_range_results_t,
-        psys: *mut VL53LX_system_results_t,
-        pcore: *mut VL53LX_core_results_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_sum_histogram_dataEP27VL53LX_histogram_bin_data_tS1_"]
-    fn VL53LX_VL53LX_sum_histogram_data(
-        this: *mut VL53LX,
-        phist_input: *mut VL53LX_histogram_bin_data_t,
-        phist_output: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_avg_histogram_dataEhP27VL53LX_histogram_bin_data_tS1_"]
-    fn VL53LX_VL53LX_avg_histogram_data(
-        this: *mut VL53LX,
-        no_of_samples: u8,
-        phist_sum: *mut VL53LX_histogram_bin_data_t,
-        phist_avg: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX20VL53LX_save_cfg_dataEv"]
-    fn VL53LX_VL53LX_save_cfg_data(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_dynamic_zone_updateEP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_dynamic_zone_update(
-        this: *mut VL53LX,
-        presults: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_update_internal_stream_countersEhPhS0_"]
-    fn VL53LX_VL53LX_update_internal_stream_counters(
-        this: *mut VL53LX,
-        external_stream_count: u8,
-        pinternal_stream_count: *mut u8,
-        pinternal_stream_count_val: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_multizone_hist_bins_updateEv"]
-    fn VL53LX_VL53LX_multizone_hist_bins_update(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX49VL53LX_set_histogram_multizone_initial_bin_configEP20VL53LX_zone_config_tP25VL53LX_histogram_config_tS3_"]
-    fn VL53LX_VL53LX_set_histogram_multizone_initial_bin_config(
-        this: *mut VL53LX,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-        phist_cfg: *mut VL53LX_histogram_config_t,
-        pmulti_hist: *mut VL53LX_histogram_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_encode_GPIO_interrupt_configEP30VL53LX_GPIO_interrupt_config_t"]
-    fn VL53LX_VL53LX_encode_GPIO_interrupt_config(
-        this: *mut VL53LX,
-        pintconf: *mut VL53LX_GPIO_interrupt_config_t,
-    ) -> u8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_decode_GPIO_interrupt_configEh"]
-    fn VL53LX_VL53LX_decode_GPIO_interrupt_config(
-        this: *mut VL53LX,
-        system__interrupt_config: u8,
-    ) -> VL53LX_GPIO_interrupt_config_t;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_set_GPIO_distance_thresholdEtt"]
-    fn VL53LX_VL53LX_set_GPIO_distance_threshold(
-        this: *mut VL53LX,
-        threshold_high: u16,
-        threshold_low: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_set_GPIO_rate_thresholdEtt"]
-    fn VL53LX_VL53LX_set_GPIO_rate_threshold(
-        this: *mut VL53LX,
-        threshold_high: u16,
-        threshold_low: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_set_GPIO_thresholds_from_structEP30VL53LX_GPIO_interrupt_config_t"]
-    fn VL53LX_VL53LX_set_GPIO_thresholds_from_struct(
-        this: *mut VL53LX,
-        pintconf: *mut VL53LX_GPIO_interrupt_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_set_ref_spad_char_configEhjtttt"]
-    fn VL53LX_VL53LX_set_ref_spad_char_config(
-        this: *mut VL53LX,
-        vcsel_period_a: u8,
-        phasecal_timeout_us: u32,
-        total_rate_target_mcps: u16,
-        max_count_rate_rtn_limit_mcps: u16,
-        min_count_rate_rtn_limit_mcps: u16,
-        fast_osc_frequency: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX21VL53LX_set_ssc_configEP19VL53LX_ssc_config_tt"]
-    fn VL53LX_VL53LX_set_ssc_config(
-        this: *mut VL53LX,
-        pssc_cfg: *mut VL53LX_ssc_config_t,
-        fast_osc_frequency: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX25VL53LX_get_spad_rate_dataEP23VL53LX_spad_rate_data_t"]
-    fn VL53LX_VL53LX_get_spad_rate_data(
-        this: *mut VL53LX,
-        pspad_rates: *mut VL53LX_spad_rate_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_calc_crosstalk_plane_offset_with_marginEjs"]
-    fn VL53LX_VL53LX_calc_crosstalk_plane_offset_with_margin(
-        this: *mut VL53LX,
-        plane_offset_kcps: u32,
-        margin_offset_kcps: i16,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_low_power_auto_data_initEv"]
-    fn VL53LX_VL53LX_low_power_auto_data_init(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_low_power_auto_data_stop_rangeEv"]
-    fn VL53LX_VL53LX_low_power_auto_data_stop_range(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX53VL53LX_dynamic_xtalk_correction_calc_required_samplesEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_calc_required_samples(
-        this: *mut VL53LX,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_dynamic_xtalk_correction_calc_new_xtalkEjP32VL53LX_smudge_corrector_config_tP30VL53LX_smudge_corrector_data_thh"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_calc_new_xtalk(
-        this: *mut VL53LX,
-        xtalk_offset_out: u32,
-        pconfig: *mut VL53LX_smudge_corrector_config_t,
-        pout: *mut VL53LX_smudge_corrector_data_t,
-        add_smudge: u8,
-        soft_update: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_dynamic_xtalk_correction_correctorEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_corrector(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_dynamic_xtalk_correction_data_initEv"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_data_init(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_dynamic_xtalk_correction_output_initEP24VL53LX_LLDriverResults_t"]
-    fn VL53LX_VL53LX_dynamic_xtalk_correction_output_init(
-        this: *mut VL53LX,
-        pres: *mut VL53LX_LLDriverResults_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX26VL53LX_xtalk_cal_data_initEv"]
-    fn VL53LX_VL53LX_xtalk_cal_data_init(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_config_low_power_auto_modeEP23VL53LX_general_config_tP23VL53LX_dynamic_config_tP28VL53LX_low_power_auto_data_t"]
-    fn VL53LX_VL53LX_config_low_power_auto_mode(
-        this: *mut VL53LX,
-        pgeneral: *mut VL53LX_general_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        plpadata: *mut VL53LX_low_power_auto_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_low_power_auto_setup_manual_calibrationEv"]
-    fn VL53LX_VL53LX_low_power_auto_setup_manual_calibration(this: *mut VL53LX)
-        -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_low_power_auto_update_DSSEv"]
-    fn VL53LX_VL53LX_low_power_auto_update_DSS(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_compute_histo_merge_nbEPh"]
-    fn VL53LX_VL53LX_compute_histo_merge_nb(
-        this: *mut VL53LX,
-        histo_merge_nb: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_wait_for_boot_completionEv"]
-    fn VL53LX_VL53LX_wait_for_boot_completion(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_wait_for_firmware_readyEv"]
-    fn VL53LX_VL53LX_wait_for_firmware_ready(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_wait_for_range_completionEv"]
-    fn VL53LX_VL53LX_wait_for_range_completion(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_wait_for_test_completionEv"]
-    fn VL53LX_VL53LX_wait_for_test_completion(this: *mut VL53LX) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23VL53LX_is_boot_completeEPh"]
-    fn VL53LX_VL53LX_is_boot_complete(this: *mut VL53LX, pready: *mut u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_is_firmware_readyEPh"]
-    fn VL53LX_VL53LX_is_firmware_ready(this: *mut VL53LX, pready: *mut u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_is_new_data_readyEPh"]
-    fn VL53LX_VL53LX_is_new_data_ready(this: *mut VL53LX, pready: *mut u8) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_poll_for_boot_completionEj"]
-    fn VL53LX_VL53LX_poll_for_boot_completion(
-        this: *mut VL53LX,
-        timeout_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_poll_for_firmware_readyEj"]
-    fn VL53LX_VL53LX_poll_for_firmware_ready(
-        this: *mut VL53LX,
-        timeout_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_poll_for_range_completionEj"]
-    fn VL53LX_VL53LX_poll_for_range_completion(
-        this: *mut VL53LX,
-        timeout_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX33VL53LX_init_zone_config_structureEhhhhhhhhP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_init_zone_config_structure(
-        this: *mut VL53LX,
-        x_off: u8,
-        x_inc: u8,
-        x_zones: u8,
-        y_off: u8,
-        y_inc: u8,
-        y_zones: u8,
-        width: u8,
-        height: u8,
-        pdata: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_zone_preset_xtalk_planarEP23VL53LX_general_config_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_zone_preset_xtalk_planar(
-        this: *mut VL53LX,
-        pgeneral: *mut VL53LX_general_config_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_init_zone_config_histogram_binsEP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_init_zone_config_histogram_bins(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_init_refspadchar_config_structEP27VL53LX_refspadchar_config_t"]
-    fn VL53LX_VL53LX_init_refspadchar_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_refspadchar_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_init_ssc_config_structEP19VL53LX_ssc_config_t"]
-    fn VL53LX_VL53LX_init_ssc_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_ssc_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX31VL53LX_init_xtalk_config_structEP29VL53LX_customer_nvm_managed_tP21VL53LX_xtalk_config_t"]
-    fn VL53LX_VL53LX_init_xtalk_config_struct(
-        this: *mut VL53LX,
-        pnvm: *mut VL53LX_customer_nvm_managed_t,
-        pdata: *mut VL53LX_xtalk_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_init_xtalk_extract_config_structEP28VL53LX_xtalkextract_config_t"]
-    fn VL53LX_VL53LX_init_xtalk_extract_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_xtalkextract_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_init_offset_cal_config_structEP25VL53LX_offsetcal_config_t"]
-    fn VL53LX_VL53LX_init_offset_cal_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_offsetcal_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_init_zone_cal_config_structEP23VL53LX_zonecal_config_t"]
-    fn VL53LX_VL53LX_init_zone_cal_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_zonecal_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_init_hist_post_process_config_structEhP33VL53LX_hist_post_process_config_t"]
-    fn VL53LX_VL53LX_init_hist_post_process_config_struct(
-        this: *mut VL53LX,
-        xtalk_compensation_enable: u8,
-        pdata: *mut VL53LX_hist_post_process_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_init_dmax_calibration_data_structEP30VL53LX_dmax_calibration_data_t"]
-    fn VL53LX_VL53LX_init_dmax_calibration_data_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_dmax_calibration_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_init_tuning_parm_storage_structEP28VL53LX_tuning_parm_storage_t"]
-    fn VL53LX_VL53LX_init_tuning_parm_storage_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_tuning_parm_storage_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_init_hist_gen3_dmax_config_structEP30VL53LX_hist_gen3_dmax_config_t"]
-    fn VL53LX_VL53LX_init_hist_gen3_dmax_config_struct(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_hist_gen3_dmax_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_preset_mode_standard_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_standard_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX47VL53LX_preset_mode_standard_ranging_short_rangeEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_standard_ranging_short_range(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_preset_mode_standard_ranging_long_rangeEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_standard_ranging_long_range(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_preset_mode_standard_ranging_mm1_calEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_standard_ranging_mm1_cal(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_preset_mode_standard_ranging_mm2_calEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_standard_ranging_mm2_cal(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_preset_mode_timed_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_timed_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_preset_mode_timed_ranging_short_rangeEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_timed_ranging_short_range(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_preset_mode_timed_ranging_long_rangeEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_timed_ranging_long_range(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_preset_mode_low_power_auto_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_tP28VL53LX_low_power_auto_data_t"]
-    fn VL53LX_VL53LX_preset_mode_low_power_auto_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-        plpadata: *mut VL53LX_low_power_auto_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX47VL53LX_preset_mode_low_power_auto_short_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_tP28VL53LX_low_power_auto_data_t"]
-    fn VL53LX_VL53LX_preset_mode_low_power_auto_short_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-        plpadata: *mut VL53LX_low_power_auto_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_preset_mode_low_power_auto_long_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_tP28VL53LX_low_power_auto_data_t"]
-    fn VL53LX_VL53LX_preset_mode_low_power_auto_long_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-        plpadata: *mut VL53LX_low_power_auto_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX36VL53LX_preset_mode_histogram_rangingEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_preset_mode_histogram_ranging_with_mm1EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_with_mm1(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_preset_mode_histogram_ranging_with_mm2EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_with_mm2(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_preset_mode_histogram_ranging_mm1_calEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_mm1_cal(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_preset_mode_histogram_ranging_mm2_calEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_mm2_cal(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_preset_mode_histogram_ranging_refEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_ref(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_preset_mode_histogram_characterisationEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_characterisation(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_preset_mode_histogram_xtalk_planarEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_xtalk_planar(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_preset_mode_histogram_xtalk_mm1EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_xtalk_mm1(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_preset_mode_histogram_xtalk_mm2EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_xtalk_mm2(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX38VL53LX_preset_mode_histogram_multizoneEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_multizone(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX50VL53LX_preset_mode_histogram_multizone_short_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_multizone_short_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX49VL53LX_preset_mode_histogram_multizone_long_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_multizone_long_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX49VL53LX_preset_mode_histogram_ranging_short_timingEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_ranging_short_timing(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX39VL53LX_preset_mode_histogram_long_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_long_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX41VL53LX_preset_mode_histogram_medium_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_medium_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX40VL53LX_preset_mode_histogram_short_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_short_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX48VL53LX_preset_mode_special_histogram_short_rangeEP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_special_histogram_short_range(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_preset_mode_histogram_long_range_mm1EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_long_range_mm1(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX43VL53LX_preset_mode_histogram_long_range_mm2EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_long_range_mm2(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_preset_mode_histogram_medium_range_mm1EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_medium_range_mm1(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX45VL53LX_preset_mode_histogram_medium_range_mm2EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_medium_range_mm2(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_preset_mode_histogram_short_range_mm1EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_short_range_mm1(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX44VL53LX_preset_mode_histogram_short_range_mm2EP33VL53LX_hist_post_process_config_tP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_histogram_short_range_mm2(
-        this: *mut VL53LX,
-        phistpostprocess: *mut VL53LX_hist_post_process_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_preset_mode_oltEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_olt(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_preset_mode_singleshot_rangingEP22VL53LX_static_config_tP25VL53LX_histogram_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_tP23VL53LX_system_control_tP28VL53LX_tuning_parm_storage_tP20VL53LX_zone_config_t"]
-    fn VL53LX_VL53LX_preset_mode_singleshot_ranging(
-        this: *mut VL53LX,
-        pstatic: *mut VL53LX_static_config_t,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-        psystem: *mut VL53LX_system_control_t,
-        ptuning_parms: *mut VL53LX_tuning_parm_storage_t,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX34VL53LX_copy_hist_cfg_to_static_cfgEP25VL53LX_histogram_config_tP22VL53LX_static_config_tP23VL53LX_general_config_tP22VL53LX_timing_config_tP23VL53LX_dynamic_config_t"]
-    fn VL53LX_VL53LX_copy_hist_cfg_to_static_cfg(
-        this: *mut VL53LX,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        pgeneral: *mut VL53LX_general_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-        pdynamic: *mut VL53LX_dynamic_config_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_copy_hist_bins_to_static_cfgEP25VL53LX_histogram_config_tP22VL53LX_static_config_tP22VL53LX_timing_config_t"]
-    fn VL53LX_VL53LX_copy_hist_bins_to_static_cfg(
-        this: *mut VL53LX,
-        phistogram: *mut VL53LX_histogram_config_t,
-        pstatic: *mut VL53LX_static_config_t,
-        ptiming: *mut VL53LX_timing_config_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_is_firmware_ready_siliconEPh"]
-    fn VL53LX_VL53LX_is_firmware_ready_silicon(
-        this: *mut VL53LX,
-        pready: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_022EhhP27VL53LX_histogram_bin_data_tPiS2_S2_"]
-    fn VL53LX_VL53LX_f_022(
-        this: *mut VL53LX,
-        VL53LX_p_032: u8,
-        filter_woi: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pa: *mut i32,
-        pb: *mut i32,
-        pc: *mut i32,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_018EttjtP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_f_018(
-        this: *mut VL53LX,
-        vcsel_width: u16,
-        fast_osc_frequency: u16,
-        total_periods_elapsed: u32,
-        VL53LX_p_004: u16,
-        pdata: *mut VL53LX_range_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_019EtsP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_f_019(
-        this: *mut VL53LX,
-        gain_factor: u16,
-        range_offset_mm: i16,
-        pdata: *mut VL53LX_range_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_029EP27VL53LX_histogram_bin_data_ti"]
-    fn VL53LX_VL53LX_f_029(
-        this: *mut VL53LX,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-        ambient_estimate_counts_per_bin: i32,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_005EP27VL53LX_histogram_bin_data_tS1_S1_"]
-    fn VL53LX_VL53LX_f_005(
-        this: *mut VL53LX,
-        pxtalk: *mut VL53LX_histogram_bin_data_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_realigned: *mut VL53LX_histogram_bin_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_030EP27VL53LX_histogram_bin_data_tS1_"]
-    fn VL53LX_VL53LX_f_030(
-        this: *mut VL53LX,
-        pdata1: *mut VL53LX_histogram_bin_data_t,
-        pdata2: *mut VL53LX_histogram_bin_data_t,
-    ) -> i8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_031EP27VL53LX_histogram_bin_data_tS1_"]
-    fn VL53LX_VL53LX_f_031(
-        this: *mut VL53LX,
-        pidata: *mut VL53LX_histogram_bin_data_t,
-        podata: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37VL53LX_xtalk_calibration_process_dataEP28VL53LX_xtalk_range_results_tP29VL53LX_xtalk_histogram_data_tP34VL53LX_xtalk_calibration_results_t"]
-    fn VL53LX_VL53LX_xtalk_calibration_process_data(
-        this: *mut VL53LX,
-        pxtalk_ranges: *mut VL53LX_xtalk_range_results_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_data_t,
-        pxtalk_cal: *mut VL53LX_xtalk_calibration_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_041EP27VL53LX_histogram_bin_data_tP24VL53LX_xtalk_algo_data_tP25VL53LX_xtalk_range_data_thhP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_f_041(
-        this: *mut VL53LX,
-        pavg_bins: *mut VL53LX_histogram_bin_data_t,
-        pdebug: *mut VL53LX_xtalk_algo_data_t,
-        pxtalk_data: *mut VL53LX_xtalk_range_data_t,
-        histogram__window_start: u8,
-        histogram__window_end: u8,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_shape_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_039EP28VL53LX_xtalk_range_results_tP24VL53LX_xtalk_algo_data_tPsS4_"]
-    fn VL53LX_VL53LX_f_039(
-        this: *mut VL53LX,
-        pxtalk_results: *mut VL53LX_xtalk_range_results_t,
-        pdebug: *mut VL53LX_xtalk_algo_data_t,
-        xgradient: *mut i16,
-        ygradient: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_040EP25VL53LX_xtalk_range_data_tP24VL53LX_xtalk_algo_data_tPj"]
-    fn VL53LX_VL53LX_f_040(
-        this: *mut VL53LX,
-        pxtalk_data: *mut VL53LX_xtalk_range_data_t,
-        pdebug: *mut VL53LX_xtalk_algo_data_t,
-        xtalk_mean_offset_kcps: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_045EP27VL53LX_histogram_bin_data_tP25VL53LX_xtalk_range_data_tP24VL53LX_xtalk_algo_data_tP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_f_045(
-        this: *mut VL53LX,
-        phist_data: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_xtalk_range_data_t,
-        pdebug: *mut VL53LX_xtalk_algo_data_t,
-        pxtalk_histo: *mut VL53LX_xtalk_histogram_shape_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_032EjssaathhPj"]
-    fn VL53LX_VL53LX_f_032(
-        this: *mut VL53LX,
-        mean_offset: u32,
-        xgradient: i16,
-        ygradient: i16,
-        centre_offset_x: i8,
-        centre_offset_y: i8,
-        roi_effective_spads: u16,
-        roi_centre_spad: u8,
-        roi_xy_size: u8,
-        xtalk_rate_kcps: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_033EP27VL53LX_histogram_bin_data_tP30VL53LX_xtalk_histogram_shape_tjS1_"]
-    fn VL53LX_VL53LX_f_033(
-        this: *mut VL53LX,
-        phist_data: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_xtalk_histogram_shape_t,
-        xtalk_rate_kcps: u32,
-        pxtalkcount_data: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_047EP27VL53LX_histogram_bin_data_tS1_h"]
-    fn VL53LX_VL53LX_f_047(
-        this: *mut VL53LX,
-        phist_data: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_histogram_bin_data_t,
-        xtalk_bin_offset: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_044EP27VL53LX_histogram_bin_data_tjhh"]
-    fn VL53LX_VL53LX_f_044(
-        this: *mut VL53LX,
-        pxtalk_data: *mut VL53LX_histogram_bin_data_t,
-        amb_threshold: u32,
-        VL53LX_p_019: u8,
-        VL53LX_p_024: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_046EP29VL53LX_customer_nvm_managed_tP23VL53LX_dynamic_config_tP29VL53LX_xtalk_histogram_data_tP27VL53LX_histogram_bin_data_tS7_S7_"]
-    fn VL53LX_VL53LX_f_046(
-        this: *mut VL53LX,
-        pcustomer: *mut VL53LX_customer_nvm_managed_t,
-        pdyn_cfg: *mut VL53LX_dynamic_config_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_data_t,
-        pip_hist_data: *mut VL53LX_histogram_bin_data_t,
-        pop_hist_data: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_count_data: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_043EhiPj"]
-    fn VL53LX_VL53LX_f_043(
-        this: *mut VL53LX,
-        sigma_mult: u8,
-        VL53LX_p_028: i32,
-        ambient_noise: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX46VL53LX_generate_dual_reflectance_xtalk_samplesEP28VL53LX_xtalk_range_results_tthP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_VL53LX_generate_dual_reflectance_xtalk_samples(
-        this: *mut VL53LX,
-        pxtalk_results: *mut VL53LX_xtalk_range_results_t,
-        expected_target_distance_mm: u16,
-        higher_reflectance: u8,
-        pxtalk_avg_samples: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_042EP27VL53LX_histogram_bin_data_tS1_thhS1_"]
-    fn VL53LX_VL53LX_f_042(
-        this: *mut VL53LX,
-        pzone_avg_1: *mut VL53LX_histogram_bin_data_t,
-        pzone_avg_2: *mut VL53LX_histogram_bin_data_t,
-        expected_target_distance: u16,
-        subtract_amb: u8,
-        higher_reflectance: u8,
-        pxtalk_output: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_034EhhhP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_f_034(
-        this: *mut VL53LX,
-        sigma_estimator__effective_pulse_width_ns: u8,
-        sigma_estimator__effective_ambient_width_ns: u8,
-        sigma_estimator__sigma_ref_mm: u8,
-        pdata: *mut VL53LX_range_data_t,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_036EhhhP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_f_036(
-        this: *mut VL53LX,
-        sigma_estimator__effective_pulse_width_ns: u8,
-        sigma_estimator__effective_ambient_width_ns: u8,
-        sigma_estimator__sigma_ref_mm: u8,
-        pdata: *mut VL53LX_range_data_t,
-    ) -> u16;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_037EhjjjjjjjjjtPt"]
-    fn VL53LX_VL53LX_f_037(
-        this: *mut VL53LX,
-        sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_007: u32,
-        VL53LX_p_032: u32,
-        VL53LX_p_001: u32,
-        a_zp: u32,
-        c_zp: u32,
-        bx: u32,
-        ax_zp: u32,
-        cx_zp: u32,
-        VL53LX_p_028: u32,
-        fast_osc_frequency: u16,
-        psigma_est: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_023EhjjjjjjjjjtPt"]
-    fn VL53LX_VL53LX_f_023(
-        this: *mut VL53LX,
-        sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_007: u32,
-        VL53LX_p_032: u32,
-        VL53LX_p_001: u32,
-        a_zp: u32,
-        c_zp: u32,
-        bx: u32,
-        ax_zp: u32,
-        cx_zp: u32,
-        VL53LX_p_028: u32,
-        fast_osc_frequency: u16,
-        psigma_est: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_038Emj"]
-    fn VL53LX_VL53LX_f_038(this: *mut VL53LX, VL53LX_p_007: u64, size: u32) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_035Ejj"]
-    fn VL53LX_VL53LX_f_035(this: *mut VL53LX, VL53LX_p_007: u32, VL53LX_p_032: u32) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_003EP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_003(this: *mut VL53LX, palgo: *mut VL53LX_hist_gen3_algo_private_data_t);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_004EP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP33VL53LX_hist_post_process_config_tP27VL53LX_histogram_bin_data_tS7_P36VL53LX_hist_gen3_algo_private_data_tP36VL53LX_hist_gen3_dmax_private_data_tP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_f_004(
-        this: *mut VL53LX,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        ppost_cfg: *mut VL53LX_hist_post_process_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-        pdmax_algo: *mut VL53LX_hist_gen3_dmax_private_data_t,
-        presults: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_006EtiihP27VL53LX_histogram_bin_data_tS1_P36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_006(
-        this: *mut VL53LX,
-        ambient_threshold_events_scaler: u16,
-        ambient_threshold_sigma: i32,
-        min_ambient_threshold_events: i32,
-        algo__crosstalk_compensation_enable: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_007EP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_007(
-        this: *mut VL53LX,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_008EP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_008(
-        this: *mut VL53LX,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_009EP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_009(
-        this: *mut VL53LX,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_016EhP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_016(
-        this: *mut VL53LX,
-        target_order: VL53LX_HistTargetOrder,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_010EhP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_010(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_015EhhP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_015(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        clip_events: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_020EsshhP27VL53LX_histogram_bin_data_tPj"]
-    fn VL53LX_VL53LX_f_020(
-        this: *mut VL53LX,
-        VL53LX_p_019: i16,
-        VL53LX_p_024: i16,
-        VL53LX_p_030: u8,
-        clip_events: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pphase: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_011EhP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_algo_private_data_tiS1_"]
-    fn VL53LX_VL53LX_f_011(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-        pad_value: i32,
-        ppulse: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_012EhP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_012(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        ppulse: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_013EhtP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_013(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        noise_threshold: u16,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_021EhiihPj"]
-    fn VL53LX_VL53LX_f_021(
-        this: *mut VL53LX,
-        bin: u8,
-        filta0: i32,
-        filta1: i32,
-        VL53LX_p_030: u8,
-        pmedian_phase: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_014EhhhhhP27VL53LX_histogram_bin_data_tS1_S1_Pt"]
-    fn VL53LX_VL53LX_f_014(
-        this: *mut VL53LX,
-        bin: u8,
-        sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_030: u8,
-        VL53LX_p_051: u8,
-        crosstalk_compensation_enable: u8,
-        phist_data_ap: *mut VL53LX_histogram_bin_data_t,
-        phist_data_zp: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_hist: *mut VL53LX_histogram_bin_data_t,
-        psigma_est: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_017EhhhtP27VL53LX_histogram_bin_data_tP24VL53LX_hist_pulse_data_tP19VL53LX_range_data_t"]
-    fn VL53LX_VL53LX_f_017(
-        this: *mut VL53LX,
-        range_id: u8,
-        valid_phase_low: u8,
-        valid_phase_high: u8,
-        sigma_thres: u16,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        ppulse: *mut VL53LX_hist_pulse_data_t,
-        pdata: *mut VL53LX_range_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_024EP37VL53LX_hist_gen4_algo_filtered_data_t"]
-    fn VL53LX_VL53LX_f_024(
-        this: *mut VL53LX,
-        palgo: *mut VL53LX_hist_gen4_algo_filtered_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_025EP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP33VL53LX_hist_post_process_config_tP27VL53LX_histogram_bin_data_tS7_P36VL53LX_hist_gen3_algo_private_data_tP37VL53LX_hist_gen4_algo_filtered_data_tP36VL53LX_hist_gen3_dmax_private_data_tP22VL53LX_range_results_t"]
-    fn VL53LX_VL53LX_f_025(
-        this: *mut VL53LX,
-        pdmax_cal: *mut VL53LX_dmax_calibration_data_t,
-        pdmax_cfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        ppost_cfg: *mut VL53LX_hist_post_process_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-        pfiltered: *mut VL53LX_hist_gen4_algo_filtered_data_t,
-        pdmax_algo: *mut VL53LX_hist_gen3_dmax_private_data_t,
-        presults: *mut VL53LX_range_results_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_026EhP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_algo_private_data_tP37VL53LX_hist_gen4_algo_filtered_data_t"]
-    fn VL53LX_VL53LX_f_026(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        ppulse: *mut VL53LX_histogram_bin_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-        pfiltered: *mut VL53LX_hist_gen4_algo_filtered_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_027EhtP37VL53LX_hist_gen4_algo_filtered_data_tP36VL53LX_hist_gen3_algo_private_data_t"]
-    fn VL53LX_VL53LX_f_027(
-        this: *mut VL53LX,
-        pulse_no: u8,
-        noise_threshold: u16,
-        pfiltered: *mut VL53LX_hist_gen4_algo_filtered_data_t,
-        palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_028EhiiiiiiihPj"]
-    fn VL53LX_VL53LX_f_028(
-        this: *mut VL53LX,
-        bin: u8,
-        VL53LX_p_007: i32,
-        VL53LX_p_032: i32,
-        VL53LX_p_001: i32,
-        ax: i32,
-        bx: i32,
-        cx: i32,
-        VL53LX_p_028: i32,
-        VL53LX_p_030: u8,
-        pmedian_phase: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_001EtP30VL53LX_dmax_calibration_data_tP30VL53LX_hist_gen3_dmax_config_tP27VL53LX_histogram_bin_data_tP36VL53LX_hist_gen3_dmax_private_data_tPs"]
-    fn VL53LX_VL53LX_f_001(
-        this: *mut VL53LX,
-        target_reflectance: u16,
-        pcal: *mut VL53LX_dmax_calibration_data_t,
-        pcfg: *mut VL53LX_hist_gen3_dmax_config_t,
-        pbins: *mut VL53LX_histogram_bin_data_t,
-        pdata: *mut VL53LX_hist_gen3_dmax_private_data_t,
-        pambient_dmax_mm: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX12VL53LX_f_002Ejjjj"]
-    fn VL53LX_VL53LX_f_002(
-        this: *mut VL53LX,
-        events_threshold: u32,
-        ref_signal_events: u32,
-        ref_distance_mm: u32,
-        signal_thresh_sigma: u32,
-    ) -> u32;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_run_ref_spad_charEPa"]
-    fn VL53LX_VL53LX_run_ref_spad_char(
-        this: *mut VL53LX,
-        pcal_status: *mut VL53LX_Error,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_run_device_testEh"]
-    fn VL53LX_VL53LX_run_device_test(
-        this: *mut VL53LX,
-        device_test_mode: VL53LX_DeviceTestMode,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24VL53LX_run_spad_rate_mapEhhjP23VL53LX_spad_rate_data_t"]
-    fn VL53LX_VL53LX_run_spad_rate_map(
-        this: *mut VL53LX,
-        device_test_mode: VL53LX_DeviceTestMode,
-        array_select: VL53LX_DeviceSscArray,
-        ssc_config_timeout_us: u32,
-        pspad_rate_data: *mut VL53LX_spad_rate_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_run_xtalk_extractionEPa"]
-    fn VL53LX_VL53LX_run_xtalk_extraction(
-        this: *mut VL53LX,
-        pcal_status: *mut VL53LX_Error,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_get_and_avg_xtalk_samplesEhhssthhP28VL53LX_xtalk_range_results_tP27VL53LX_histogram_bin_data_tS3_"]
-    fn VL53LX_VL53LX_get_and_avg_xtalk_samples(
-        this: *mut VL53LX,
-        num_of_samples: u8,
-        measurement_mode: u8,
-        xtalk_filter_thresh_max_mm: i16,
-        xtalk_filter_thresh_min_mm: i16,
-        xtalk_max_valid_rate_kcps: u16,
-        xtalk_result_id: u8,
-        xtalk_histo_id: u8,
-        pxtalk_results: *mut VL53LX_xtalk_range_results_t,
-        psum_histo: *mut VL53LX_histogram_bin_data_t,
-        pavg_histo: *mut VL53LX_histogram_bin_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX29VL53LX_run_offset_calibrationEstPa"]
-    fn VL53LX_VL53LX_run_offset_calibration(
-        this: *mut VL53LX,
-        cal_distance_mm: i16,
-        cal_reflectance_pc: u16,
-        pcal_status: *mut VL53LX_Error,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_run_phasecal_averageEhhtP22VL53LX_range_results_tPtS2_"]
-    fn VL53LX_VL53LX_run_phasecal_average(
-        this: *mut VL53LX,
-        measurement_mode: u8,
-        phasecal_result__vcsel_start: u8,
-        phasecal_num_of_samples: u16,
-        prange_results: *mut VL53LX_range_results_t,
-        pphasecal_result__reference_phase: *mut u16,
-        pzero_distance_phase: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX27VL53LX_run_zone_calibrationEhhP20VL53LX_zone_config_tstPa"]
-    fn VL53LX_VL53LX_run_zone_calibration(
-        this: *mut VL53LX,
-        device_preset_mode: VL53LX_DevicePresetModes,
-        zone_preset: VL53LX_DeviceZonePreset,
-        pzone_cfg: *mut VL53LX_zone_config_t,
-        cal_distance_mm: i16,
-        cal_reflectance_pc: u16,
-        pcal_status: *mut VL53LX_Error,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX35VL53LX_hist_xtalk_extract_data_initEP32VL53LX_hist_xtalk_extract_data_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_data_init(
-        this: *mut VL53LX,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_hist_xtalk_extract_updateEstP27VL53LX_histogram_bin_data_tP32VL53LX_hist_xtalk_extract_data_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_update(
-        this: *mut VL53LX,
-        target_distance_mm: i16,
-        target_width_oversize: u16,
-        phist_bins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX30VL53LX_hist_xtalk_extract_finiEP27VL53LX_histogram_bin_data_tP32VL53LX_hist_xtalk_extract_data_tP34VL53LX_xtalk_calibration_results_tP30VL53LX_xtalk_histogram_shape_t"]
-    fn VL53LX_VL53LX_hist_xtalk_extract_fini(
-        this: *mut VL53LX,
-        phist_bins: *mut VL53LX_histogram_bin_data_t,
-        pxtalk_data: *mut VL53LX_hist_xtalk_extract_data_t,
-        pxtalk_cal: *mut VL53LX_xtalk_calibration_results_t,
-        pxtalk_shape: *mut VL53LX_xtalk_histogram_shape_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX32VL53LX_run_hist_xtalk_extractionEsPa"]
-    fn VL53LX_VL53LX_run_hist_xtalk_extraction(
-        this: *mut VL53LX,
-        cal_distance_mm: i16,
-        pcal_status: *mut VL53LX_Error,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23select_offset_per_vcselEP21VL53LX_LLDriverData_tPs"]
-    fn VL53LX_select_offset_per_vcsel(
-        this: *mut VL53LX,
-        pdev: *mut VL53LX_LLDriverData_t,
-        poffset: *mut i16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX24vl53lx_diff_histo_stddevEP21VL53LX_LLDriverData_tP27VL53LX_histogram_bin_data_thhhPi"]
-    fn VL53LX_vl53lx_diff_histo_stddev(
-        this: *mut VL53LX,
-        pdev: *mut VL53LX_LLDriverData_t,
-        pdata: *mut VL53LX_histogram_bin_data_t,
-        timing: u8,
-        HighIndex: u8,
-        prev_pos: u8,
-        pdiff_histo_stddev: *mut i32,
-    );
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX18vl53lx_histo_mergeEP27VL53LX_histogram_bin_data_t"]
-    fn VL53LX_vl53lx_histo_merge(this: *mut VL53LX, pdata: *mut VL53LX_histogram_bin_data_t);
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX23ComputeDevicePresetModeEhPh"]
-    fn VL53LX_ComputeDevicePresetMode(
-        this: *mut VL53LX,
-        DistanceMode: VL53LX_DistanceModes,
-        pDevicePresetMode: *mut VL53LX_DevicePresetModes,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17SetPresetModeL3CXEhj"]
-    fn VL53LX_SetPresetModeL3CX(
-        this: *mut VL53LX,
-        DistanceMode: VL53LX_DistanceModes,
-        inter_measurement_period_ms: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37SetInterMeasurementPeriodMilliSecondsEj"]
-    fn VL53LX_SetInterMeasurementPeriodMilliSeconds(
-        this: *mut VL53LX,
-        InterMeasurementPeriodMilliSeconds: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX37GetInterMeasurementPeriodMilliSecondsEPj"]
-    fn VL53LX_GetInterMeasurementPeriodMilliSeconds(
-        this: *mut VL53LX,
-        pInterMeasurementPeriodMilliSeconds: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX18ConvertStatusHistoEh"]
-    fn VL53LX_ConvertStatusHisto(this: *mut VL53LX, FilteredRangeStatus: u8) -> u8;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13SetTargetDataEhhP19VL53LX_range_data_tP24VL53LX_TargetRangeData_t"]
-    fn VL53LX_SetTargetData(
-        this: *mut VL53LX,
-        active_results: u8,
-        device_status: u8,
-        presults_data: *mut VL53LX_range_data_t,
-        pRangeData: *mut VL53LX_TargetRangeData_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX18SetMeasurementDataEP22VL53LX_range_results_tP25VL53LX_MultiRangingData_t"]
-    fn VL53LX_SetMeasurementData(
-        this: *mut VL53LX,
-        presults: *mut VL53LX_range_results_t,
-        pMultiRangingData: *mut VL53LX_MultiRangingData_t,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_WrByteEP12VL53LX_Dev_tth"]
-    fn VL53LX_VL53LX_WrByte(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_WrWordEP12VL53LX_Dev_ttt"]
-    fn VL53LX_VL53LX_WrWord(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX14VL53LX_WrDWordEP12VL53LX_Dev_ttj"]
-    fn VL53LX_VL53LX_WrDWord(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_RdByteEP12VL53LX_Dev_ttPh"]
-    fn VL53LX_VL53LX_RdByte(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: *mut u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_RdWordEP12VL53LX_Dev_ttPt"]
-    fn VL53LX_VL53LX_RdWord(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: *mut u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX14VL53LX_RdDWordEP12VL53LX_Dev_ttPj"]
-    fn VL53LX_VL53LX_RdDWord(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        data: *mut u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_UpdateByteEP12VL53LX_Dev_tthh"]
-    fn VL53LX_VL53LX_UpdateByte(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        AndData: u8,
-        OrData: u8,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX17VL53LX_WriteMultiEP12VL53LX_Dev_ttPhj"]
-    fn VL53LX_VL53LX_WriteMulti(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        pdata: *mut u8,
-        count: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX16VL53LX_ReadMultiEP12VL53LX_Dev_ttPhj"]
-    fn VL53LX_VL53LX_ReadMulti(
-        this: *mut VL53LX,
-        Dev: VL53LX_DEV,
-        index: u16,
-        pdata: *mut u8,
-        count: u32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX15VL53LX_I2CWriteEhtPht"]
-    fn VL53LX_VL53LX_I2CWrite(
-        this: *mut VL53LX,
-        DeviceAddr: u8,
-        RegisterAddr: u16,
-        pBuffer: *mut u8,
-        NumByteToWrite: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX14VL53LX_I2CReadEhtPht"]
-    fn VL53LX_VL53LX_I2CRead(
-        this: *mut VL53LX,
-        DeviceAddr: u8,
-        RegisterAddr: u16,
-        pBuffer: *mut u8,
-        NumByteToRead: u16,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX19VL53LX_GetTickCountEPj"]
-    fn VL53LX_VL53LX_GetTickCount(this: *mut VL53LX, ptick_count_ms: *mut u32) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_WaitUsEP12VL53LX_Dev_ti"]
-    fn VL53LX_VL53LX_WaitUs(
-        this: *mut VL53LX,
-        pdev: *mut VL53LX_Dev_t,
-        wait_us: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX13VL53LX_WaitMsEP12VL53LX_Dev_ti"]
-    fn VL53LX_VL53LX_WaitMs(
-        this: *mut VL53LX,
-        pdev: *mut VL53LX_Dev_t,
-        wait_ms: i32,
-    ) -> VL53LX_Error;
-}
-extern "C" {
-    #[link_name = "\u{1}_ZN6VL53LX22VL53LX_WaitValueMaskExEP12VL53LX_Dev_tjthhj"]
-    fn VL53LX_VL53LX_WaitValueMaskEx(
-        this: *mut VL53LX,
-        pdev: *mut VL53LX_Dev_t,
-        timeout_ms: u32,
-        index: u16,
-        value: u8,
-        mask: u8,
-        poll_delay_ms: u32,
-    ) -> VL53LX_Error;
-}
-impl VL53LX {
-    #[inline]
-    unsafe fn VL53LX_GetVersion(&mut self, pVersion: *mut VL53LX_Version_t) -> VL53LX_Error {
-        VL53LX_VL53LX_GetVersion(self, pVersion)
-    }
-    #[inline]
-    unsafe fn VL53LX_GetProductRevision(
-        &mut self,
-        pProductRevisionMajor: *mut u8,
-        pProductRevisionMinor: *mut u8,
-    ) -> VL53LX_Error {
-        VL53LX_VL53LX_GetProductRevision(self, pProductRevisionMajor, pProductRevisionMinor)
-    }
-    #[inline]
-    unsafe fn VL53LX_GetDeviceInfo(
-        &mut self,
-        pVL53LX_DeviceInfo: *mut VL53LX_DeviceInfo_t,
-    ) -> VL53LX_Error {
-        VL53LX_VL53LX_GetDeviceInfo(self, pVL53LX_DeviceInfo)
-    }
-    #[inline]
-    unsafe fn VL53LX_GetUID(&mut self, pUid: *mut u64) -> VL53LX_Error {
+
+    //XXXXXXXXXXXXXXX
+    pub fn VL53LX_GetUID(&mut self, pUid: *mut u64) -> Vl53LxResult<u64> {
         VL53LX_VL53LX_GetUID(self, pUid)
     }
+
     #[inline]
     unsafe fn VL53LX_SetDeviceAddress(&mut self, DeviceAddress: u8) -> VL53LX_Error {
         VL53LX_VL53LX_SetDeviceAddress(self, DeviceAddress)
@@ -34629,7 +29789,7 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_set_preset_mode(
         &mut self,
-        device_preset_mode: VL53LX_DevicePresetModes,
+        device_preset_mode: Vl53lxDevicePresetModes,
         dss_config__target_total_rate_mcps: u16,
         phasecal_config_timeout_us: u32,
         mm_config_timeout_us: u32,
@@ -34649,7 +29809,7 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_get_preset_mode_timing_cfg(
         &mut self,
-        device_preset_mode: VL53LX_DevicePresetModes,
+        device_preset_mode: Vl53lxDevicePresetModes,
         pdss_config__target_total_rate_mcps: *mut u16,
         pphasecal_config_timeout_us: *mut u32,
         pmm_config_timeout_us: *mut u32,
@@ -34667,7 +29827,7 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_set_zone_preset(
         &mut self,
-        zone_preset: VL53LX_DeviceZonePreset,
+        zone_preset: Vl53lxDeviceZonePreset,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_set_zone_preset(self, zone_preset)
     }
@@ -35135,7 +30295,7 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_i2c_encode_static_nvm_managed(
         &mut self,
-        pdata: *mut VL53LX_static_nvm_managed_t,
+        pdata: *mut Vl53lxStaticNvmManaged,
         buf_size: u16,
         pbuffer: *mut u8,
     ) -> VL53LX_Error {
@@ -35146,21 +30306,21 @@ impl VL53LX {
         &mut self,
         buf_size: u16,
         pbuffer: *mut u8,
-        pdata: *mut VL53LX_static_nvm_managed_t,
+        pdata: *mut Vl53lxStaticNvmManaged,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_i2c_decode_static_nvm_managed(self, buf_size, pbuffer, pdata)
     }
     #[inline]
     unsafe fn VL53LX_set_static_nvm_managed(
         &mut self,
-        pdata: *mut VL53LX_static_nvm_managed_t,
+        pdata: *mut Vl53lxStaticNvmManaged,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_set_static_nvm_managed(self, pdata)
     }
     #[inline]
     unsafe fn VL53LX_get_static_nvm_managed(
         &mut self,
-        pdata: *mut VL53LX_static_nvm_managed_t,
+        pdata: *mut Vl53lxStaticNvmManaged,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_get_static_nvm_managed(self, pdata)
     }
@@ -35896,8 +31056,9 @@ impl VL53LX {
     ) {
         VL53LX_VL53LX_nvm_format_encode(self, pnvm_info, pnvm_data)
     }
-    #[inline]
-    unsafe fn VL53LX_read_nvm_raw_data(
+
+    //XXXXXXXXXXX
+    pub fn VL53LX_read_nvm_raw_data(
         &mut self,
         start_address: u8,
         count: u8,
@@ -36103,11 +31264,11 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_events_per_spad_maths(
         &mut self,
-        VL53LX_p_010: i32,
+        vl53lx_p_010: i32,
         num_spads: u16,
         duration: u32,
     ) -> u32 {
-        VL53LX_VL53LX_events_per_spad_maths(self, VL53LX_p_010, num_spads, duration)
+        VL53LX_VL53LX_events_per_spad_maths(self, vl53lx_p_010, num_spads, duration)
     }
     #[inline]
     unsafe fn VL53LX_isqrt(&mut self, num: u32) -> u32 {
@@ -36144,8 +31305,8 @@ impl VL53LX {
         VL53LX_VL53LX_calc_pll_period_mm(self, fast_osc_frequency)
     }
     #[inline]
-    unsafe fn VL53LX_rate_maths(&mut self, VL53LX_p_018: i32, time_us: u32) -> u16 {
-        VL53LX_VL53LX_rate_maths(self, VL53LX_p_018, time_us)
+    unsafe fn VL53LX_rate_maths(&mut self, vl53lx_p_018: i32, time_us: u32) -> u16 {
+        VL53LX_VL53LX_rate_maths(self, vl53lx_p_018, time_us)
     }
     #[inline]
     unsafe fn VL53LX_rate_per_spad_maths(
@@ -36167,7 +31328,7 @@ impl VL53LX {
     unsafe fn VL53LX_range_maths(
         &mut self,
         fast_osc_frequency: u16,
-        VL53LX_p_014: u16,
+        vl53lx_p_014: u16,
         zero_distance_phase: u16,
         fractional_bits: u8,
         gain_factor: i32,
@@ -36176,7 +31337,7 @@ impl VL53LX {
         VL53LX_VL53LX_range_maths(
             self,
             fast_osc_frequency,
-            VL53LX_p_014,
+            vl53lx_p_014,
             zero_distance_phase,
             fractional_bits,
             gain_factor,
@@ -36199,10 +31360,10 @@ impl VL53LX {
     unsafe fn VL53LX_init_histogram_bin_data_struct(
         &mut self,
         bin_value: i32,
-        VL53LX_p_021: u16,
+        vl53lx_p_021: u16,
         pdata: *mut VL53LX_histogram_bin_data_t,
     ) {
-        VL53LX_VL53LX_init_histogram_bin_data_struct(self, bin_value, VL53LX_p_021, pdata)
+        VL53LX_VL53LX_init_histogram_bin_data_struct(self, bin_value, vl53lx_p_021, pdata)
     }
     #[inline]
     unsafe fn VL53LX_decode_row_col(&mut self, spad_number: u8, prow: *mut u8, pcol: *mut u8) {
@@ -36227,7 +31388,7 @@ impl VL53LX {
         VL53LX_VL53LX_init_version(self)
     }
     #[inline]
-    unsafe fn VL53LX_init_ll_driver_state(&mut self, ll_state: VL53LX_DeviceState) {
+    unsafe fn VL53LX_init_ll_driver_state(&mut self, ll_state: Vl53lxDeviceState) {
         VL53LX_VL53LX_init_ll_driver_state(self, ll_state)
     }
     #[inline]
@@ -36314,10 +31475,10 @@ impl VL53LX {
     unsafe fn VL53LX_init_xtalk_bin_data_struct(
         &mut self,
         bin_value: u32,
-        VL53LX_p_021: u16,
+        vl53lx_p_021: u16,
         pdata: *mut VL53LX_xtalk_histogram_shape_t,
     ) {
-        VL53LX_VL53LX_init_xtalk_bin_data_struct(self, bin_value, VL53LX_p_021, pdata)
+        VL53LX_VL53LX_init_xtalk_bin_data_struct(self, bin_value, vl53lx_p_021, pdata)
     }
     #[inline]
     unsafe fn VL53LX_i2c_encode_uint16_t(
@@ -36422,9 +31583,9 @@ impl VL53LX {
     unsafe fn VL53LX_calc_macro_period_us(
         &mut self,
         fast_osc_frequency: u16,
-        VL53LX_p_005: u8,
+        vl53lx_p_005: u8,
     ) -> u32 {
-        VL53LX_VL53LX_calc_macro_period_us(self, fast_osc_frequency, VL53LX_p_005)
+        VL53LX_VL53LX_calc_macro_period_us(self, fast_osc_frequency, vl53lx_p_005)
     }
     #[inline]
     unsafe fn VL53LX_calc_range_ignore_threshold(
@@ -36503,8 +31664,8 @@ impl VL53LX {
         )
     }
     #[inline]
-    unsafe fn VL53LX_encode_vcsel_period(&mut self, VL53LX_p_030: u8) -> u8 {
-        VL53LX_VL53LX_encode_vcsel_period(self, VL53LX_p_030)
+    unsafe fn VL53LX_encode_vcsel_period(&mut self, vl53lx_p_030: u8) -> u8 {
+        VL53LX_VL53LX_encode_vcsel_period(self, vl53lx_p_030)
     }
     #[inline]
     unsafe fn VL53LX_decode_unsigned_integer(
@@ -38135,14 +33296,14 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_f_022(
         &mut self,
-        VL53LX_p_032: u8,
+        vl53lx_p_032: u8,
         filter_woi: u8,
         pbins: *mut VL53LX_histogram_bin_data_t,
         pa: *mut i32,
         pb: *mut i32,
         pc: *mut i32,
     ) {
-        VL53LX_VL53LX_f_022(self, VL53LX_p_032, filter_woi, pbins, pa, pb, pc)
+        VL53LX_VL53LX_f_022(self, vl53lx_p_032, filter_woi, pbins, pa, pb, pc)
     }
     #[inline]
     unsafe fn VL53LX_f_018(
@@ -38150,7 +33311,7 @@ impl VL53LX {
         vcsel_width: u16,
         fast_osc_frequency: u16,
         total_periods_elapsed: u32,
-        VL53LX_p_004: u16,
+        vl53lx_p_004: u16,
         pdata: *mut VL53LX_range_data_t,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_018(
@@ -38158,7 +33319,7 @@ impl VL53LX {
             vcsel_width,
             fast_osc_frequency,
             total_periods_elapsed,
-            VL53LX_p_004,
+            vl53lx_p_004,
             pdata,
         )
     }
@@ -38318,10 +33479,10 @@ impl VL53LX {
         &mut self,
         pxtalk_data: *mut VL53LX_histogram_bin_data_t,
         amb_threshold: u32,
-        VL53LX_p_019: u8,
-        VL53LX_p_024: u8,
+        vl53lx_p_019: u8,
+        vl53lx_p_024: u8,
     ) -> VL53LX_Error {
-        VL53LX_VL53LX_f_044(self, pxtalk_data, amb_threshold, VL53LX_p_019, VL53LX_p_024)
+        VL53LX_VL53LX_f_044(self, pxtalk_data, amb_threshold, vl53lx_p_019, vl53lx_p_024)
     }
     #[inline]
     unsafe fn VL53LX_f_046(
@@ -38347,10 +33508,10 @@ impl VL53LX {
     unsafe fn VL53LX_f_043(
         &mut self,
         sigma_mult: u8,
-        VL53LX_p_028: i32,
+        vl53lx_p_028: i32,
         ambient_noise: *mut u32,
     ) -> VL53LX_Error {
-        VL53LX_VL53LX_f_043(self, sigma_mult, VL53LX_p_028, ambient_noise)
+        VL53LX_VL53LX_f_043(self, sigma_mult, vl53lx_p_028, ambient_noise)
     }
     #[inline]
     unsafe fn VL53LX_generate_dual_reflectance_xtalk_samples(
@@ -38424,30 +33585,30 @@ impl VL53LX {
     unsafe fn VL53LX_f_037(
         &mut self,
         sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_007: u32,
-        VL53LX_p_032: u32,
-        VL53LX_p_001: u32,
+        vl53lx_p_007: u32,
+        vl53lx_p_032: u32,
+        vl53lx_p_001: u32,
         a_zp: u32,
         c_zp: u32,
         bx: u32,
         ax_zp: u32,
         cx_zp: u32,
-        VL53LX_p_028: u32,
+        vl53lx_p_028: u32,
         fast_osc_frequency: u16,
         psigma_est: *mut u16,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_037(
             self,
             sigma_estimator__sigma_ref_mm,
-            VL53LX_p_007,
-            VL53LX_p_032,
-            VL53LX_p_001,
+            vl53lx_p_007,
+            vl53lx_p_032,
+            vl53lx_p_001,
             a_zp,
             c_zp,
             bx,
             ax_zp,
             cx_zp,
-            VL53LX_p_028,
+            vl53lx_p_028,
             fast_osc_frequency,
             psigma_est,
         )
@@ -38456,41 +33617,41 @@ impl VL53LX {
     unsafe fn VL53LX_f_023(
         &mut self,
         sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_007: u32,
-        VL53LX_p_032: u32,
-        VL53LX_p_001: u32,
+        vl53lx_p_007: u32,
+        vl53lx_p_032: u32,
+        vl53lx_p_001: u32,
         a_zp: u32,
         c_zp: u32,
         bx: u32,
         ax_zp: u32,
         cx_zp: u32,
-        VL53LX_p_028: u32,
+        vl53lx_p_028: u32,
         fast_osc_frequency: u16,
         psigma_est: *mut u16,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_023(
             self,
             sigma_estimator__sigma_ref_mm,
-            VL53LX_p_007,
-            VL53LX_p_032,
-            VL53LX_p_001,
+            vl53lx_p_007,
+            vl53lx_p_032,
+            vl53lx_p_001,
             a_zp,
             c_zp,
             bx,
             ax_zp,
             cx_zp,
-            VL53LX_p_028,
+            vl53lx_p_028,
             fast_osc_frequency,
             psigma_est,
         )
     }
     #[inline]
-    unsafe fn VL53LX_f_038(&mut self, VL53LX_p_007: u64, size: u32) -> u32 {
-        VL53LX_VL53LX_f_038(self, VL53LX_p_007, size)
+    unsafe fn VL53LX_f_038(&mut self, vl53lx_p_007: u64, size: u32) -> u32 {
+        VL53LX_VL53LX_f_038(self, vl53lx_p_007, size)
     }
     #[inline]
-    unsafe fn VL53LX_f_035(&mut self, VL53LX_p_007: u32, VL53LX_p_032: u32) -> u32 {
-        VL53LX_VL53LX_f_035(self, VL53LX_p_007, VL53LX_p_032)
+    unsafe fn VL53LX_f_035(&mut self, vl53lx_p_007: u32, vl53lx_p_032: u32) -> u32 {
+        VL53LX_VL53LX_f_035(self, vl53lx_p_007, vl53lx_p_032)
     }
     #[inline]
     unsafe fn VL53LX_f_003(&mut self, palgo: *mut VL53LX_hist_gen3_algo_private_data_t) {
@@ -38505,7 +33666,7 @@ impl VL53LX {
         pbins: *mut VL53LX_histogram_bin_data_t,
         pxtalk: *mut VL53LX_histogram_bin_data_t,
         palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
-        pdmax_algo: *mut VL53LX_hist_gen3_dmax_private_data_t,
+        pdmax_algo: *mut Vl53lxHistGen3DmaxPrivateData,
         presults: *mut VL53LX_range_results_t,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_004(
@@ -38585,18 +33746,18 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_f_020(
         &mut self,
-        VL53LX_p_019: i16,
-        VL53LX_p_024: i16,
-        VL53LX_p_030: u8,
+        vl53lx_p_019: i16,
+        vl53lx_p_024: i16,
+        vl53lx_p_030: u8,
         clip_events: u8,
         pbins: *mut VL53LX_histogram_bin_data_t,
         pphase: *mut u32,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_020(
             self,
-            VL53LX_p_019,
-            VL53LX_p_024,
-            VL53LX_p_030,
+            vl53lx_p_019,
+            vl53lx_p_024,
+            vl53lx_p_030,
             clip_events,
             pbins,
             pphase,
@@ -38637,18 +33798,18 @@ impl VL53LX {
         bin: u8,
         filta0: i32,
         filta1: i32,
-        VL53LX_p_030: u8,
+        vl53lx_p_030: u8,
         pmedian_phase: *mut u32,
     ) -> VL53LX_Error {
-        VL53LX_VL53LX_f_021(self, bin, filta0, filta1, VL53LX_p_030, pmedian_phase)
+        VL53LX_VL53LX_f_021(self, bin, filta0, filta1, vl53lx_p_030, pmedian_phase)
     }
     #[inline]
     unsafe fn VL53LX_f_014(
         &mut self,
         bin: u8,
         sigma_estimator__sigma_ref_mm: u8,
-        VL53LX_p_030: u8,
-        VL53LX_p_051: u8,
+        vl53lx_p_030: u8,
+        vl53lx_p_051: u8,
         crosstalk_compensation_enable: u8,
         phist_data_ap: *mut VL53LX_histogram_bin_data_t,
         phist_data_zp: *mut VL53LX_histogram_bin_data_t,
@@ -38659,8 +33820,8 @@ impl VL53LX {
             self,
             bin,
             sigma_estimator__sigma_ref_mm,
-            VL53LX_p_030,
-            VL53LX_p_051,
+            vl53lx_p_030,
+            vl53lx_p_051,
             crosstalk_compensation_enable,
             phist_data_ap,
             phist_data_zp,
@@ -38704,7 +33865,7 @@ impl VL53LX {
         pxtalk: *mut VL53LX_histogram_bin_data_t,
         palgo: *mut VL53LX_hist_gen3_algo_private_data_t,
         pfiltered: *mut VL53LX_hist_gen4_algo_filtered_data_t,
-        pdmax_algo: *mut VL53LX_hist_gen3_dmax_private_data_t,
+        pdmax_algo: *mut Vl53lxHistGen3DmaxPrivateData,
         presults: *mut VL53LX_range_results_t,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_025(
@@ -38736,27 +33897,27 @@ impl VL53LX {
     unsafe fn VL53LX_f_028(
         &mut self,
         bin: u8,
-        VL53LX_p_007: i32,
-        VL53LX_p_032: i32,
-        VL53LX_p_001: i32,
+        vl53lx_p_007: i32,
+        vl53lx_p_032: i32,
+        vl53lx_p_001: i32,
         ax: i32,
         bx: i32,
         cx: i32,
-        VL53LX_p_028: i32,
-        VL53LX_p_030: u8,
+        vl53lx_p_028: i32,
+        vl53lx_p_030: u8,
         pmedian_phase: *mut u32,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_028(
             self,
             bin,
-            VL53LX_p_007,
-            VL53LX_p_032,
-            VL53LX_p_001,
+            vl53lx_p_007,
+            vl53lx_p_032,
+            vl53lx_p_001,
             ax,
             bx,
             cx,
-            VL53LX_p_028,
-            VL53LX_p_030,
+            vl53lx_p_028,
+            vl53lx_p_030,
             pmedian_phase,
         )
     }
@@ -38767,7 +33928,7 @@ impl VL53LX {
         pcal: *mut VL53LX_dmax_calibration_data_t,
         pcfg: *mut VL53LX_hist_gen3_dmax_config_t,
         pbins: *mut VL53LX_histogram_bin_data_t,
-        pdata: *mut VL53LX_hist_gen3_dmax_private_data_t,
+        pdata: *mut Vl53lxHistGen3DmaxPrivateData,
         pambient_dmax_mm: *mut i16,
     ) -> VL53LX_Error {
         VL53LX_VL53LX_f_001(
@@ -38893,8 +34054,8 @@ impl VL53LX {
     #[inline]
     unsafe fn VL53LX_run_zone_calibration(
         &mut self,
-        device_preset_mode: VL53LX_DevicePresetModes,
-        zone_preset: VL53LX_DeviceZonePreset,
+        device_preset_mode: Vl53lxDevicePresetModes,
+        zone_preset: Vl53lxDeviceZonePreset,
         pzone_cfg: *mut VL53LX_zone_config_t,
         cal_distance_mm: i16,
         cal_reflectance_pc: u16,
@@ -38993,7 +34154,7 @@ impl VL53LX {
     unsafe fn ComputeDevicePresetMode(
         &mut self,
         DistanceMode: VL53LX_DistanceModes,
-        pDevicePresetMode: *mut VL53LX_DevicePresetModes,
+        pDevicePresetMode: *mut Vl53lxDevicePresetModes,
     ) -> VL53LX_Error {
         VL53LX_ComputeDevicePresetMode(self, DistanceMode, pDevicePresetMode)
     }
