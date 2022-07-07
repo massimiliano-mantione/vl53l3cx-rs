@@ -14,7 +14,7 @@
 #ifndef _VL53LX_PLATFORM_IPP_H_
 #define _VL53LX_PLATFORM_IPP_H_
 
-#include <vl53lx_platform_user_data.h>
+#include "vl53lx_platform_user_data.h"
 
 #ifdef __cplusplus
 extern "C"

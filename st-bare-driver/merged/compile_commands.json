@@ -1,0 +1,1 @@
+[{ "directory": "/mnt/data/massi/massi/bots/vl53l3cx-rs/st-bare-driver/merged", "file": "merged.c", "output": "merged.o", "arguments": ["/usr/lib/llvm-14/bin/clang", "-xc", "merged.c", "-Wall", "-o", "merged.o", "-c", "--target=x86_64-pc-linux-gnu"]}]
